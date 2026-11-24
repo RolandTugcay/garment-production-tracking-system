@@ -55,7 +55,7 @@
                                 <div class="row g-2 align-items-center">
                                     <div class="col-12 col-md-4">
                                         <h3 class="card-title">
-                                            <form action="{{ url_for('worker_classes') }}" method="get" role="search">
+                                            <form action="{{ url_for('worker_classes.list_worker_classes') }}" method="get" role="search">
                                                 <div class="input-group input-group-sm w-auto">
                                                     <input type="search"
                                                         id="worker-class-search"
@@ -94,7 +94,7 @@
                                             class="sortable{% if active %} sort-{{ sort_direction }}{% endif %}"
                                             aria-sort="{% if active and sort_direction == 'asc' %}ascending{% elif active %}descending{% else %}none{% endif %}">
                                             <a class="th-content text-reset text-decoration-none"
-                                                href="{{ url_for('worker_classes', sort=column, direction=next_direction, page=1) }}"
+                                                href="{{ url_for('worker_classes.list_worker_classes', sort=column, direction=next_direction, page=1) }}"
                                                 aria-label="Sort by {{ label }}"\>
                                                 <span>{{ label }}</span>
                                                 <span class="sort-icons" aria-hidden="true">
@@ -137,24 +137,23 @@
                                                         aria-label="Edit {{ worker_class.name }}"
                                                         data-bs-toggle="modal"
                                                         data-bs-target="#modal-save-worker-class"
-                                                        data-edit-url="{{ url_for('edit_worker_class', worker_class_id=worker_class.id) }}"
+                                                        data-edit-url="{{ url_for('worker_classes.edit_worker_class', worker_class_id=worker_class.id) }}"
                                                         data-worker-class-code="{{ worker_class.code }}"
                                                         data-worker-class-name="{{ worker_class.name }}"
                                                         data-worker-class-description="{{ worker_class.description or '' }}"
                                                         data-worker-class-status="{{ worker_class.status }}">
                                                         <i class="bi bi-pencil" aria-hidden="true"></i>
                                                     </button>
-                                                    {% set in_use = worker_class.id in used_worker_class_ids %}
                                                     <button type="button" title="Delete"
                                                         class="btn btn-sm btn-outline-danger"
                                                         aria-label="Delete {{ worker_class.name }}"
                                                         data-bs-toggle="modal"
                                                         data-bs-target="#modal-delete-worker-class"
-                                                        data-delete-url="{{ url_for('delete_worker_class', worker_class_id=worker_class.id) }}"
+                                                        data-delete-url="{{ url_for('worker_classes.delete_worker_class', worker_class_id=worker_class.id) }}"
                                                         data-worker-class-id="{{ worker_class.id }}"
                                                         data-worker-class-name="{{ worker_class.name }}"
-                                                        {% if in_use %}disabled{% endif %}
-                                                    >
+                                                        {% set in_use = worker_class.id in used_worker_class_ids %}
+                                                        {% if in_use %}disabled{% endif %}>
                                                         <i class="bi bi-trash" aria-hidden="true"></i>
                                                     </button>
                                                 </td>
@@ -190,7 +189,7 @@
                                         <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
                                             {% if pagination.has_prev %}
                                                 <a class="page-link"
-                                                href="{{ url_for('worker_classes', page=pagination.prev_num, sort=sort_by, direction=sort_direction) }}"
+                                                href="{{ url_for('worker_classes.list_worker_classes', page=pagination.prev_num, sort=sort_by, direction=sort_direction) }}"
                                                 aria-label="Previous">«</a>
                                             {% else %}
                                                 <span class="page-link" aria-hidden="true">«</span>
@@ -209,7 +208,7 @@
                                                         <span class="page-link" aria-current="page">{{ page_num }}</span>
                                                     {% else %}
                                                         <a class="page-link"
-                                                        href="{{ url_for('worker_classes', page=page_num, sort=sort_by, direction=sort_direction) }}">
+                                                        href="{{ url_for('worker_classes.list_worker_classes', page=page_num, sort=sort_by, direction=sort_direction) }}">
                                                             {{ page_num }}
                                                         </a>
                                                     {% endif %}
@@ -224,7 +223,7 @@
                                         <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
                                             {% if pagination.has_next %}
                                                 <a class="page-link"
-                                                href="{{ url_for('worker_classes', page=pagination.next_num, sort=sort_by, direction=sort_direction) }}"
+                                                href="{{ url_for('worker_classes.list_worker_classes', page=pagination.next_num, sort=sort_by, direction=sort_direction) }}"
                                                 aria-label="Next">»</a>
                                             {% else %}
                                                 <span class="page-link" aria-hidden="true">»</span>
@@ -248,8 +247,8 @@
                     <div class="modal-dialog">
                         <div class="modal-content">
                             <form id="worker-class-form-save"
-                                action="{{ url_for('worker_classes') }}"
-                                data-create-url="{{ url_for('worker_classes') }}"
+                                action="{{ url_for('worker_classes.create_worker_class') }}"
+                                data-create-url="{{ url_for('worker_classes.create_worker_class') }}"
                                 method="post">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <div class="modal-header">
@@ -320,8 +319,7 @@
                     <div class="modal-dialog">
                         <div class="modal-content">
                             <form id="worker-class-form-del"
-                                action="{{ url_for('worker_classes') }}"
-                                data-delete-url="{{ url_for('worker_classes') }}"
+                                action="#"
                                 method="post">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <div class="modal-header">
@@ -418,7 +416,7 @@
         const workerClassName = deleteButton.dataset.workerClassName || "this worker class";
 
         deleteForm.action = deleteButton.dataset.deleteUrl;
-        deleteMessage.textContent = `Are you sure you want to delete ${workerClassId}:${workerClassName}?`;
+        deleteMessage.textContent = `Are you sure you want to delete ${workerClassName}?`;
     });
 </script>
 

@@ -1,32 +1,19 @@
-<!--begin::Sidebar-->
 {% macro active_class(endpoints, current_endpoint) -%}
     {{ 'active' if current_endpoint in endpoints else '' }}
 {%- endmacro %}
 
 {% set current_endpoint = request.endpoint %}
 
-{% set system_setup_endpoints = [
-    'worker_classes', 'edit_worker_class',
-    'workers', 'edit_worker',
-    'users', 'edit_user',
-    'customers', 'edit_customer',
-    'garment_types', 'edit_garment_type',
-    'garment_jobs', 'edit_garment_job'
+{% set worker_classes_endpoints = [
+    'worker_classes.list_worker_classes',
+    'worker_classes.create_worker_class',
+    'worker_classes.edit_worker_class',
+    'worker_classes.delete_worker_class'
 ] %}
 
-{% set purchase_order_endpoints = [
-    'purchase_orders', 'edit_purchase_order',
-    'purchase_order_items', 'edit_purchase_order_item'
-] %}
+{% set system_setup_endpoints = worker_classes_endpoints %}
 
-{% set production_endpoints = [
-    'production_batches', 'edit_production_batch',
-    'production_batch_jobs', 'edit_production_batch_job',
-    'production_batch_job_workers', 'edit_production_batch_job_worker',
-    'production_batch_qc', 'edit_production_batch_qc',
-    'production_batch_rejections', 'edit_production_batch_rejection'
-] %}
-
+<!--begin::Sidebar-->
 <aside class="app-sidebar bg-body-secondary shadow" data-bs-theme="dark">
 
     <!--begin::Sidebar Brand-->
@@ -68,45 +55,48 @@
                     </a>
 
                     <ul class="nav nav-treeview">
+                        <!-- Worker Classes -->
                         <li class="nav-item item">
-                            <a href="{{ url_for('worker_classes') }}"
-                               class="nav-link {{ active_class(['worker_classes', 'edit_worker_class'], current_endpoint) }}"
-                               {% if current_endpoint in ['worker_classes', 'edit_worker_class'] %}aria-current="page"{% endif %}>
+                            <a href="{{ url_for('worker_classes.list_worker_classes') }}"
+                               class="nav-link {{ active_class(worker_classes_endpoints, current_endpoint) }}"
+                               {% if current_endpoint in worker_classes_endpoints %}aria-current="page"{% endif %}>
                                 <i class="nav-icon bi bi-people"></i>
                                 <p>Worker Classes</p>
                             </a>
                         </li>
+
+                        <!-- Add links when these routes are available -->
                         <li class="nav-item item">
                             <a href="#"
-                               class="nav-link {{ active_class(['workers', 'edit_worker'], current_endpoint) }}">
+                               class="nav-link">
                                 <i class="nav-icon bi bi-person"></i>
                                 <p>Workers</p>
                             </a>
                         </li>
                         <li class="nav-item item">
                             <a href="#"
-                               class="nav-link {{ active_class(['users', 'edit_user'], current_endpoint) }}">
+                               class="nav-link">
                                 <i class="nav-icon bi bi-person-badge"></i>
                                 <p>Users</p>
                             </a>
                         </li>
                         <li class="nav-item item">
                             <a href="#"
-                               class="nav-link {{ active_class(['customers', 'edit_customer'], current_endpoint) }}">
+                               class="nav-link">
                                 <i class="nav-icon bi bi-briefcase"></i>
                                 <p>Customers</p>
                             </a>
                         </li>
                         <li class="nav-item item">
                             <a href="#"
-                               class="nav-link {{ active_class(['garment_types', 'edit_garment_type'], current_endpoint) }}">
+                               class="nav-link">
                                 <i class="nav-icon bi bi-person-standing-dress"></i>
                                 <p>Garment Types</p>
                             </a>
                         </li>
                         <li class="nav-item item">
                             <a href="#"
-                               class="nav-link {{ active_class(['garment_jobs', 'edit_garment_job'], current_endpoint) }}">
+                               class="nav-link">
                                 <i class="nav-icon bi bi-list-ol"></i>
                                 <p>Garment Jobs</p>
                             </a>
@@ -115,25 +105,22 @@
                 </li>
 
                 <!-- Purchase Orders -->
-                <li class="nav-item{% if current_endpoint in purchase_order_endpoints %} menu-open{% endif %}">
+                <li class="nav-item">
                     <a href="#"
-                       class="nav-link {{ active_class(purchase_order_endpoints, current_endpoint) }}"
-                       aria-expanded="{{ 'true' if current_endpoint in purchase_order_endpoints else 'false' }}">
+                       class="nav-link">
                         <i class="nav-icon bi bi-clipboard2-minus-fill"></i>
                         <p>Purchase Orders<i class="nav-arrow bi bi-chevron-right"></i></p>
                     </a>
 
                     <ul class="nav nav-treeview">
                         <li class="nav-item item">
-                            <a href="#"
-                               class="nav-link {{ active_class(['purchase_orders', 'edit_purchase_order'], current_endpoint) }}">
+                            <a href="#" class="nav-link">
                                 <i class="nav-icon bi bi-cart"></i>
                                 <p>Orders</p>
                             </a>
                         </li>
                         <li class="nav-item item">
-                            <a href="#"
-                               class="nav-link {{ active_class(['purchase_order_items', 'edit_purchase_order_item'], current_endpoint) }}">
+                            <a href="#" class="nav-link">
                                 <i class="nav-icon bi bi-list-task"></i>
                                 <p>Order Items</p>
                             </a>
@@ -142,46 +129,40 @@
                 </li>
 
                 <!-- Production -->
-                <li class="nav-item{% if current_endpoint in production_endpoints %} menu-open{% endif %}">
+                <li class="nav-item">
                     <a href="#"
-                       class="nav-link {{ active_class(production_endpoints, current_endpoint) }}"
-                       aria-expanded="{{ 'true' if current_endpoint in production_endpoints else 'false' }}">
+                       class="nav-link">
                         <i class="nav-icon bi bi-house-gear-fill"></i>
                         <p>Production<i class="nav-arrow bi bi-chevron-right"></i></p>
                     </a>
 
                     <ul class="nav nav-treeview">
                         <li class="nav-item item">
-                            <a href="#"
-                               class="nav-link {{ active_class(['production_batches', 'edit_production_batch'], current_endpoint) }}">
+                            <a href="#" class="nav-link">
                                 <i class="nav-icon bi bi-layers"></i>
                                 <p>Batches</p>
                             </a>
                         </li>
                         <li class="nav-item item">
-                            <a href="#"
-                               class="nav-link {{ active_class(['production_batch_jobs', 'edit_production_batch_job'], current_endpoint) }}">
+                            <a href="#" class="nav-link">
                                 <i class="nav-icon bi bi-person-workspace"></i>
                                 <p>Batch Jobs</p>
                             </a>
                         </li>
                         <li class="nav-item item">
-                            <a href="#"
-                               class="nav-link {{ active_class(['production_batch_job_workers', 'edit_production_batch_job_worker'], current_endpoint) }}">
+                            <a href="#" class="nav-link">
                                 <i class="nav-icon bi bi-people"></i>
                                 <p>Batch Job Workers</p>
                             </a>
                         </li>
                         <li class="nav-item item">
-                            <a href="#"
-                               class="nav-link {{ active_class(['production_batch_qc', 'edit_production_batch_qc'], current_endpoint) }}">
+                            <a href="#" class="nav-link">
                                 <i class="nav-icon bi bi-search"></i>
                                 <p>Inspections</p>
                             </a>
                         </li>
                         <li class="nav-item item">
-                            <a href="#"
-                               class="nav-link {{ active_class(['production_batch_rejections', 'edit_production_batch_rejection'], current_endpoint) }}">
+                            <a href="#" class="nav-link">
                                 <i class="nav-icon bi bi-x-circle"></i>
                                 <p>Rejections</p>
                             </a>
@@ -190,9 +171,8 @@
                 </li>
 
                 <!-- Deliveries -->
-                <li class="nav-item item">
-                    <a href="#"
-                       class="nav-link {{ active_class(['production_batch_deliveries', 'edit_production_batch_delivery'], current_endpoint) }}">
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
                         <i class="nav-icon bi bi-truck-front-fill"></i>
                         <p>Deliveries</p>
                     </a>
