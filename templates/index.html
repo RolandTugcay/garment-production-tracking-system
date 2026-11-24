@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+
+<!--begin::Head--> 
+{% include 'head.html' %}
+<!--end::Head-->
+
+<!--begin::Body-->
+<body class="login-page bg-body-secondary">
+    <main class="login-box">
+        <h1 class="login-logo"><a href="{{ url_for('index') }}"><b>SewMuchFun</b></a></h1>
+        <!-- /.login-logo -->
+        <div class="card">
+            <div class="card-body login-card-body">
+                <!-- <p class="login-box-msg">Login in to start your session</p> -->
+                <form name="login-form" action="{{ url_for('index') }}" method="post">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <label class="visually-hidden" for="loginUsername">Username
+                    </label>
+                    <div class="input-group mb-3">
+                        <input 
+                            id="login_username" 
+                            name="username" 
+                            type="text" 
+                            class="form-control" 
+                            placeholder="Username" 
+                            autocomplete="username" 
+                            required/>
+                        <div class="input-group-text">
+                            <span class="bi bi-person-fill"></span>
+                        </div>
+                    </div>
+                    <label class="visually-hidden" for="loginPassword">Password
+                        <span class="required-indicator sr-only"> (required)</span>
+                    </label>
+                    <div class="input-group mb-3">
+                        <input 
+                            id="login_password"
+                            name="password"
+                            type="password" 
+                            class="form-control" 
+                            placeholder="Password" 
+                            autocomplete="current-password"
+                            required/>
+                        <div class="input-group-text">
+                            <span class="bi bi-lock-fill"></span>
+                        </div>
+                    </div>
+                    <!--begin::Row-->
+                    <div class="row">
+                        <div class="col-8"></div>
+                        <!-- /.col -->
+                        <div class="col-4">
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary">Login</button>
+                            </div>
+                        </div>
+                        <!-- /.col -->
+                    </div>
+                    <!--end::Row-->
+                </form>
+                <p class="mb-1"><a href="forgot-password.html">Forgot password</a></p>
+            </div>
+            <!-- /.login-card-body -->
+        </div>
+
+        <!--begin:: toast message-->
+        {% include 'toast-message.html' %}
+        <!--end:: toast message-->
+
+    </main>
+    <!-- /.login-box -->
+
+    <!--begin::Script--> 
+    {% include 'script.html' %}
+    <!--end::Script-->
+
+</body>
+<!--end::Body-->
+</html>

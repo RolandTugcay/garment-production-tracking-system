@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="en">
+  
+<!--begin::Head-->
+{% include 'head.html' %}
+<!--end::Head-->
+
+<!--begin::Body-->
+<body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
+<!--begin::App Wrapper-->
+<div class="app-wrapper">
+    
+    {% include 'topbar.html' %}
+    {% include 'sidebar.html' %}
+    
+    <!--begin::App Main-->
+    <main class="app-main">
+        
+        <!--begin::App Content Header-->
+        <div class="app-content-header">
+            <!--begin::Container-->
+            <div class="container-fluid">
+                <!--begin::Row-->
+                <div class="row">
+                    <div class="col-sm-6">
+                        <h2 class="mb-0 fs-3">Worker Classes</h2>
+                    </div>
+                    <div class="col-sm-6">
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb float-sm-end">
+                                <li class="breadcrumb-item"><a href="{{ url_for('index')}}">Home</a></li>
+                                <li class="breadcrumb-item"><a href="#">System Setup</a></li>
+                                <li class="breadcrumb-item active" aria-current="page">Worker Classes</li>
+                            </ol>
+                        </nav>
+                    </div>
+                </div>
+                <!--end::Row-->
+            </div>
+            <!--end::Container-->
+        </div>
+        <!--end::App Content Header-->
+
+        <!--begin::App Content-->
+        <div class="app-content">
+            <!--begin::Container-->
+            <div class="container-fluid">
+                <!--begin::Row-->
+                <div class="row">
+                    <div class="col-12">
+                        <!--begin::Card-->
+                        <div class="card mb-4">
+                            <!--begin::Card Header-->
+                            <div class="card-header">
+                                <div class="row g-2 align-items-center">
+                                    <div class="col-12 col-md-4">
+                                        <h3 class="card-title">
+                                            <form action="{{ url_for('worker_classes') }}" method="get" role="search">
+                                                <div class="input-group input-group-sm w-auto">
+                                                    <input type="search"
+                                                        id="worker-class-search"
+                                                        name="q"
+                                                        class="form-control"
+                                                        placeholder="Search..."
+                                                        aria-label="Search worker classes"
+                                                        value="{{ search_query }}"
+                                                        maxlength="100"
+                                                        style="width: 180px">
+                                                    <button class="btn btn-outline-secondary" type="submit" aria-label="Search">
+                                                        <i class="bi bi-search" aria-hidden="true"></i>
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </h3>
+                                    </div>
+                                    <div class="col-12 col-md-8">
+                                        <div class="d-flex flex-wrap justify-content-md-end gap-2">
+                                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modal-save-worker-class" title="Add new worker class">
+                                                <i class="bi bi-plus me-1" aria-hidden="true"></i>New
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!--end::Card Header-->
+
+                            <!--begin::Card Body-->
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    {% macro sort_header(label, column, sort_by, sort_direction) %}
+                                        {% set active = sort_by == column %}
+                                        {% set next_direction = 'desc' if active and sort_direction == 'asc' else 'asc' %}
+                                        <th scope="col"
+                                            class="sortable{% if active %} sort-{{ sort_direction }}{% endif %}"
+                                            aria-sort="{% if active and sort_direction == 'asc' %}ascending{% elif active %}descending{% else %}none{% endif %}">
+                                            <a class="th-content text-reset text-decoration-none"
+                                                href="{{ url_for('worker_classes', sort=column, direction=next_direction, page=1) }}"
+                                                aria-label="Sort by {{ label }}"\>
+                                                <span>{{ label }}</span>
+                                                <span class="sort-icons" aria-hidden="true">
+                                                    <i class="bi bi-chevron-up"></i>
+                                                    <i class="bi bi-chevron-down"></i>
+                                                </span>
+                                            </a>
+                                        </th>
+                                    {% endmacro %}
+                                    <table class="table table-hover align-middle m-0" role="table">
+                                        <thead>
+                                            <tr>
+                                                {{ sort_header("Code", "code", sort_by, sort_direction) }}
+                                                {{ sort_header("Name", "name", sort_by, sort_direction) }}
+                                                {{ sort_header("Description", "description", sort_by, sort_direction) }}
+                                                {{ sort_header("Status", "status", sort_by, sort_direction) }}
+                                                {{ sort_header("Created", "created_at", sort_by, sort_direction) }}
+                                                {{ sort_header("Updated", "updated_at", sort_by, sort_direction) }}
+                                                <th class="text-end" scope="col">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for worker_class in worker_classes %}
+                                            <tr>
+                                                <td class="text-primary" style="font-weight:500;">{{ worker_class.code }}</td>
+                                                <td>{{ worker_class.name }}</td>
+                                                <td>{{ worker_class.description or "" }}</td>
+                                                <td>
+                                                    {% if worker_class.status == 'Active' %}
+                                                        <span class="badge text-bg-success">Active</span>
+                                                    {% else %}
+                                                        <span class="badge text-bg-secondary">Inactive</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ worker_class.created_at.strftime("%Y-%m-%d %H:%M") }}</td>
+                                                <td>{{ worker_class.updated_at.strftime("%Y-%m-%d %H:%M") }}</td>
+                                                <td class="text-end">
+                                                    <button type="button" title="Edit"
+                                                        class="btn btn-sm btn-outline-secondary"
+                                                        aria-label="Edit {{ worker_class.name }}"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#modal-save-worker-class"
+                                                        data-edit-url="{{ url_for('edit_worker_class', worker_class_id=worker_class.id) }}"
+                                                        data-worker-class-code="{{ worker_class.code }}"
+                                                        data-worker-class-name="{{ worker_class.name }}"
+                                                        data-worker-class-description="{{ worker_class.description or '' }}"
+                                                        data-worker-class-status="{{ worker_class.status }}">
+                                                        <i class="bi bi-pencil" aria-hidden="true"></i>
+                                                    </button>
+                                                    {% set in_use = worker_class.id in used_worker_class_ids %}
+                                                    <button type="button" title="Delete"
+                                                        class="btn btn-sm btn-outline-danger"
+                                                        aria-label="Delete {{ worker_class.name }}"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#modal-delete-worker-class"
+                                                        data-delete-url="{{ url_for('delete_worker_class', worker_class_id=worker_class.id) }}"
+                                                        data-worker-class-id="{{ worker_class.id }}"
+                                                        data-worker-class-name="{{ worker_class.name }}"
+                                                        {% if in_use %}disabled{% endif %}
+                                                    >
+                                                        <i class="bi bi-trash" aria-hidden="true"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            {% else %}
+                                            <tr>
+                                                <td colspan="6" class="text-center text-body-secondary py-4">
+                                                    No worker classes have been added yet.
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <!-- /.table-responsive -->
+                            </div>
+                            <!--end::Card Body-->
+                        
+                            <!--begin::Card Footer-->
+                            <div class="card-footer clearfix">
+                                <div class="float-start pt-1 fs-7 text-body-secondary">
+                                    {% if pagination.total %}
+                                        Showing {{ pagination.first }} to {{ pagination.last }}
+                                        of {{ pagination.total }} worker classes
+                                    {% else %}
+                                        No worker classes to display
+                                    {% endif %}
+                                </div>
+
+                                {% if pagination.pages > 1 %}
+                                <nav aria-label="Worker class pages">
+                                    <ul class="pagination pagination-sm m-0 float-end">
+                                        <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                                            {% if pagination.has_prev %}
+                                                <a class="page-link"
+                                                href="{{ url_for('worker_classes', page=pagination.prev_num, sort=sort_by, direction=sort_direction) }}"
+                                                aria-label="Previous">«</a>
+                                            {% else %}
+                                                <span class="page-link" aria-hidden="true">«</span>
+                                            {% endif %}
+                                        </li>
+
+                                        {% for page_num in pagination.iter_pages(
+                                            left_edge=1,
+                                            right_edge=1,
+                                            left_current=1,
+                                            right_current=2
+                                        ) %}
+                                            {% if page_num %}
+                                                <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+                                                    {% if page_num == pagination.page %}
+                                                        <span class="page-link" aria-current="page">{{ page_num }}</span>
+                                                    {% else %}
+                                                        <a class="page-link"
+                                                        href="{{ url_for('worker_classes', page=page_num, sort=sort_by, direction=sort_direction) }}">
+                                                            {{ page_num }}
+                                                        </a>
+                                                    {% endif %}
+                                                </li>
+                                            {% else %}
+                                                <li class="page-item disabled">
+                                                    <span class="page-link">…</span>
+                                                </li>
+                                            {% endif %}
+                                        {% endfor %}
+
+                                        <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                                            {% if pagination.has_next %}
+                                                <a class="page-link"
+                                                href="{{ url_for('worker_classes', page=pagination.next_num, sort=sort_by, direction=sort_direction) }}"
+                                                aria-label="Next">»</a>
+                                            {% else %}
+                                                <span class="page-link" aria-hidden="true">»</span>
+                                            {% endif %}
+                                        </li>
+                                    </ul>
+                                </nav>
+                                {% endif %}
+                            </div>
+                            <!--end::Card Footer-->
+
+                        </div>
+                        <!--end::Card-->
+                    </div>
+                    <!-- /.col -->
+                </div>
+                <!--end::Row-->
+
+                <!--begin::Add/Edit Modal-->
+                <div class="modal fade" id="modal-save-worker-class" tabindex="-1" aria-labelledby="modal-save-worker-class-label" style="display: none;" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <form id="worker-class-form-save"
+                                action="{{ url_for('worker_classes') }}"
+                                data-create-url="{{ url_for('worker_classes') }}"
+                                method="post">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="modal-save-worker-class-label">
+                                        Add new worker class
+                                    </h5>
+                                    <button type="button"
+                                            class="btn-close"
+                                            data-bs-dismiss="modal"
+                                            aria-label="Close">
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label for="new-worker-class-code" class="form-label">Code</label>
+                                        <input type="text"
+                                            class="form-control"
+                                            id="new-worker-class-code"
+                                            name="code"
+                                            maxlength="10"
+                                            required
+                                            oninput="this.value = this.value.toUpperCase()">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="new-worker-class-name" class="form-label">Name</label>
+                                        <input type="text"
+                                            class="form-control"
+                                            id="new-worker-class-name"
+                                            name="name"
+                                            maxlength="50"
+                                            required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="new-worker-class-status" class="form-label">
+                                            Status
+                                        </label>
+                                        <select class="form-select" id="new-worker-class-status" name="status">
+                                            <option selected="">Active</option>
+                                            <option>Inactive</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="new-worker-class-description" class="form-label">
+                                            Description
+                                        </label>
+                                        <textarea class="form-control"
+                                                id="new-worker-class-description"
+                                                name="description"
+                                                style="height: 6rem">
+                                        </textarea>
+                                    </div>
+                                </div>
+
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                        Cancel
+                                    </button>
+                                    <button type="submit" class="btn btn-primary">Save</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <!--end::Add Modal-->
+
+                <!--begin::Delete Modal-->
+                <div class="modal fade" id="modal-delete-worker-class" tabindex="-1" aria-labelledby="modal-delete-worker-class-label" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <form id="worker-class-form-del"
+                                action="{{ url_for('worker_classes') }}"
+                                data-delete-url="{{ url_for('worker_classes') }}"
+                                method="post">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="modal-delete-worker-class-label">Delete worker class</h5>
+                                    <button
+                                    type="button"
+                                    class="btn-close"
+                                    data-bs-dismiss="modal"
+                                    aria-label="Close"
+                                    ></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p class="mb-0" id="modal-delete-worker-class-message"></p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <!--end::Delete Modal-->
+
+            </div>
+            <!--end::Container-->
+        </div>
+        <!--end::App Content-->
+
+    </main>
+    <!--end::App Main-->
+
+    <!--begin::Footer-->
+    {% include 'footer.html' %}
+    <!--end::Footer-->
+
+</div>
+<!--end::App Wrapper-->
+
+<!--begin:: toast message-->
+{% include 'toast-message.html' %}
+<!--end:: toast message-->
+
+<!--begin::Script-->
+{% include 'script.html' %}
+<!--end::Script-->
+
+<script>
+    const workerClassModalSave = document.getElementById("modal-save-worker-class");
+    const workerClassModalDel = document.getElementById("modal-delete-worker-class")
+
+    workerClassModalSave.addEventListener("show.bs.modal", (event) => {
+        const button = event.relatedTarget;
+        const saveForm = document.getElementById("worker-class-form-save");
+        const codeInput = document.getElementById("new-worker-class-code");
+        const nameInput = document.getElementById("new-worker-class-name");
+        const descriptionInput = document.getElementById("new-worker-class-description");
+        const statusInput = document.getElementById("new-worker-class-status");
+        const title = document.getElementById("modal-save-worker-class-label");
+
+        const editUrl = button?.dataset.editUrl;
+
+        if (editUrl) {
+            saveForm.action = editUrl;
+            codeInput.value = button.dataset.workerClassCode || "";
+            codeInput.readOnly = true;
+            codeInput.disabled = true;
+
+            nameInput.value = button.dataset.workerClassName || "";
+            descriptionInput.value =button.dataset.workerClassDescription || "";
+            statusInput.value = button.dataset.workerClassStatus || "";
+            title.textContent = "Edit worker class";
+        } else {
+            saveForm.action = saveForm.dataset.createUrl;
+            saveForm.reset();
+
+            codeInput.readOnly = false;
+            codeInput.required = true;
+            codeInput.disabled = false;
+            descriptionInput.value = "";
+            title.textContent = "Add new worker class";
+        }
+
+    });
+
+    workerClassModalDel.addEventListener("show.bs.modal", (event) => {
+        const deleteButton = event.relatedTarget;
+        if (!deleteButton) return;
+            const deleteForm = document.getElementById("worker-class-form-del");
+            const deleteMessage = document.getElementById("modal-delete-worker-class-message"
+        );
+
+        const workerClassId = deleteButton.dataset.workerClassId;
+        const workerClassName = deleteButton.dataset.workerClassName || "this worker class";
+
+        deleteForm.action = deleteButton.dataset.deleteUrl;
+        deleteMessage.textContent = `Are you sure you want to delete ${workerClassId}:${workerClassName}?`;
+    });
+</script>
+
+</body>
+<!--end::Body-->
+</html>

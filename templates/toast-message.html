@@ -1,0 +1,36 @@
+<!--begin:: toast message-->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="toast-container position-fixed top-0 end-0 p-3"
+            aria-live="assertive"
+            aria-atomic="true">
+            {% for category, message in messages %}
+                {% set toast_class = {
+                    'danger': 'danger',
+                    'warning': 'warning',
+                    'success': 'success',
+                    'info': 'info'
+                }.get(category, 'primary') %}
+            <div
+                id="toastDanger"
+                class="toast toast-{{ toast_class }}"
+                role="alert"
+                aria-live="assertive"
+                aria-atomic="true"
+            >
+            <div class="toast-header">
+                <i class="bi bi-circle me-2"></i>
+                <strong class="me-auto">Login</strong>
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="toast"
+                    aria-label="Close"
+                ></button>
+            </div>
+            <div class="toast-body">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+<!--end:: toast message-->
