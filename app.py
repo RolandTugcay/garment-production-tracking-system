@@ -9,7 +9,7 @@ from flask_wtf.csrf import CSRFProtect
 from sqlalchemy import or_, text
 
 from src.extensions import database_url, db, login_manager
-from src.routes.worker_classes import worker_classes_bp
+import src.routes as routes
 import src.models as models
 
 app = Flask(__name__)
@@ -26,7 +26,8 @@ db.init_app(app)
 login_manager.init_app(app)
 csrf = CSRFProtect(app)
 
-app.register_blueprint(worker_classes_bp)
+app.register_blueprint(routes.worker_classes_bp)
+app.register_blueprint(routes.workers_bp)
 
 #=========================== LOGIN ===========================
 @login_manager.user_loader

@@ -93,3 +93,12 @@ th.sort-desc .bi-chevron-down {
     color: #0f172a;
     font-weight: bold;
 }
+
+.modal-body-row {
+  display: flex;
+  gap: 16px; /* Adjust spacing between columns as needed */
+}
+
+.modal-body-column {
+  flex: 1; /* Makes both columns equal width */
+}

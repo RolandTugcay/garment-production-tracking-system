@@ -16,7 +16,6 @@ from src.extensions import db
 
 worker_classes_bp = Blueprint("worker_classes", __name__)
 
-
 #=========================== WORKER CLASS: LIST, SEARCH, SORT, PAGINATE ===========================
 @worker_classes_bp.get("/worker-classes")
 @login_required

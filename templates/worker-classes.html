@@ -10,37 +10,40 @@
 <!--begin::App Wrapper-->
 <div class="app-wrapper">
     
-    {% include 'topbar.html' %}
+    <!--begin::Navbar-->
+    <nav class="app-header navbar navbar-expand bg-body">
+    <!--begin::Container-->
+        <div class="container-fluid">
+
+            <!--begin::Start Navbar Links-->
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" data-lte-toggle="sidebar" href="#" role="button" aria-label="Toggle sidebar">
+                    <i class="bi bi-list"></i>
+                    </a>
+                </li>            
+                <li class="nav-item d-none d-md-block">
+                    <ol class="breadcrumb float-sm-end" style="margin-top: 7px;"> 
+                        <li class="breadcrumb-item"><a href="{{ url_for('index')}}">Home</a></li>
+                        <li class="breadcrumb-item"><a href="#">System Setup</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Worker Classes</li>
+                    </ol>
+                </li>
+            </ul>
+            <!--end::Start Navbar Links-->
+
+            {% include('end-navbar-links.html') %}
+
+        </div>
+        <!--end::Container-->
+    </nav>
+    <!--end::Navbar-->
+
     {% include 'sidebar.html' %}
     
     <!--begin::App Main-->
     <main class="app-main">
-        
-        <!--begin::App Content Header-->
-        <div class="app-content-header">
-            <!--begin::Container-->
-            <div class="container-fluid">
-                <!--begin::Row-->
-                <div class="row">
-                    <div class="col-sm-6">
-                        <h2 class="mb-0 fs-3">Worker Classes</h2>
-                    </div>
-                    <div class="col-sm-6">
-                        <nav aria-label="breadcrumb">
-                            <ol class="breadcrumb float-sm-end">
-                                <li class="breadcrumb-item"><a href="{{ url_for('index')}}">Home</a></li>
-                                <li class="breadcrumb-item"><a href="#">System Setup</a></li>
-                                <li class="breadcrumb-item active" aria-current="page">Worker Classes</li>
-                            </ol>
-                        </nav>
-                    </div>
-                </div>
-                <!--end::Row-->
-            </div>
-            <!--end::Container-->
-        </div>
-        <!--end::App Content Header-->
-
+        <div style="margin-top: 10px;"></div>
         <!--begin::App Content-->
         <div class="app-content">
             <!--begin::Container-->
@@ -104,7 +107,7 @@
                                             </a>
                                         </th>
                                     {% endmacro %}
-                                    <table class="table table-hover align-middle m-0" role="table">
+                                    <table class="table table-hover align-middle m-0 fs-7" role="table">
                                         <thead>
                                             <tr>
                                                 {{ sort_header("Code", "code", sort_by, sort_direction) }}
@@ -367,58 +370,7 @@
 {% include 'script.html' %}
 <!--end::Script-->
 
-<script>
-    const workerClassModalSave = document.getElementById("modal-save-worker-class");
-    const workerClassModalDel = document.getElementById("modal-delete-worker-class")
-
-    workerClassModalSave.addEventListener("show.bs.modal", (event) => {
-        const button = event.relatedTarget;
-        const saveForm = document.getElementById("worker-class-form-save");
-        const codeInput = document.getElementById("new-worker-class-code");
-        const nameInput = document.getElementById("new-worker-class-name");
-        const descriptionInput = document.getElementById("new-worker-class-description");
-        const statusInput = document.getElementById("new-worker-class-status");
-        const title = document.getElementById("modal-save-worker-class-label");
-
-        const editUrl = button?.dataset.editUrl;
-
-        if (editUrl) {
-            saveForm.action = editUrl;
-            codeInput.value = button.dataset.workerClassCode || "";
-            codeInput.readOnly = true;
-            codeInput.disabled = true;
-
-            nameInput.value = button.dataset.workerClassName || "";
-            descriptionInput.value =button.dataset.workerClassDescription || "";
-            statusInput.value = button.dataset.workerClassStatus || "";
-            title.textContent = "Edit worker class";
-        } else {
-            saveForm.action = saveForm.dataset.createUrl;
-            saveForm.reset();
-
-            codeInput.readOnly = false;
-            codeInput.required = true;
-            codeInput.disabled = false;
-            descriptionInput.value = "";
-            title.textContent = "Add new worker class";
-        }
-
-    });
-
-    workerClassModalDel.addEventListener("show.bs.modal", (event) => {
-        const deleteButton = event.relatedTarget;
-        if (!deleteButton) return;
-            const deleteForm = document.getElementById("worker-class-form-del");
-            const deleteMessage = document.getElementById("modal-delete-worker-class-message"
-        );
-
-        const workerClassId = deleteButton.dataset.workerClassId;
-        const workerClassName = deleteButton.dataset.workerClassName || "this worker class";
-
-        deleteForm.action = deleteButton.dataset.deleteUrl;
-        deleteMessage.textContent = `Are you sure you want to delete ${workerClassName}?`;
-    });
-</script>
+<script src="{{ url_for('static', filename='js/page-worker-classes.js') }}" defer></script>
 
 </body>
 <!--end::Body-->

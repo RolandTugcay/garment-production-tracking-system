@@ -11,7 +11,14 @@
     'worker_classes.delete_worker_class'
 ] %}
 
-{% set system_setup_endpoints = worker_classes_endpoints %}
+{% set workers_endpoints = [
+    'workers.list_workers',
+    'workers.create_worker',
+    'workers.edit_worker',
+    'workers.delete_worker'
+] %}
+
+{% set system_setup_endpoints = worker_classes_endpoints + workers_endpoints %}
 
 <!--begin::Sidebar-->
 <aside class="app-sidebar bg-body-secondary shadow" data-bs-theme="dark">
@@ -67,8 +74,8 @@
 
                         <!-- Add links when these routes are available -->
                         <li class="nav-item item">
-                            <a href="#"
-                               class="nav-link">
+                            <a href="{{ url_for('workers.list_workers') }}"
+                               class="nav-link {{ active_class(workers_endpoints, current_endpoint) }}">
                                 <i class="nav-icon bi bi-person"></i>
                                 <p>Workers</p>
                             </a>
