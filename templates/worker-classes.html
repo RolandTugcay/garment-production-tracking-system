@@ -62,6 +62,15 @@
                                         <h3 class="card-title">
                                             <form action="{{ url_for('worker_classes.list_worker_classes') }}" method="get" role="search">
                                                 <div class="input-group input-group-sm w-auto">
+                                                    <select class="form-select flex-shrink-0" id="worker-class-search-field" name="search_field" style="width: 120px;">
+                                                        <option value="all_fields" {% if search_field == 'all_fields' %}selected{% endif %}>All Fields</option>
+                                                        <option value="code" {% if search_field == 'code' %}selected{% endif %}>Code</option>
+                                                        <option value="name" {% if search_field == 'name' %}selected{% endif %}>Name</option>
+                                                        <option value="description" {% if search_field == 'description' %}selected{% endif %}>Description</option>
+                                                        <option value="status" {% if search_field == 'status' %}selected{% endif %}>Status</option>
+                                                        <option value="created_at" {% if search_field == 'created_at' %}selected{% endif %}>Created At</option>
+                                                        <option value="updated_at" {% if search_field == 'updated_at' %}selected{% endif %}>Updated At</option>
+                                                    </select>
                                                     <input type="search"
                                                         id="worker-class-search"
                                                         name="q"
@@ -99,8 +108,8 @@
                                             class="sortable{% if active %} sort-{{ sort_direction }}{% endif %}"
                                             aria-sort="{% if active and sort_direction == 'asc' %}ascending{% elif active %}descending{% else %}none{% endif %}">
                                             <a class="th-content text-reset text-decoration-none"
-                                                href="{{ url_for('worker_classes.list_worker_classes', sort=column, direction=next_direction, page=1) }}"
-                                                aria-label="Sort by {{ label }}"\>
+                                                href="{{ url_for('worker_classes.list_worker_classes', sort=column, direction=next_direction, page=1, q=search_query, search_field=search_field) }}"
+                                                aria-label="Sort by {{ label }}">
                                                 <span>{{ label }}</span>
                                                 <span class="sort-icons" aria-hidden="true">
                                                     <i class="bi bi-chevron-up"></i>
@@ -194,7 +203,7 @@
                                         <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
                                             {% if pagination.has_prev %}
                                                 <a class="page-link"
-                                                href="{{ url_for('worker_classes.list_worker_classes', page=pagination.prev_num, sort=sort_by, direction=sort_direction) }}"
+                                                href="{{ url_for('worker_classes.list_worker_classes', page=pagination.prev_num, sort=sort_by, direction=sort_direction, q=search_query, search_field=search_field) }}"
                                                 aria-label="Previous">«</a>
                                             {% else %}
                                                 <span class="page-link" aria-hidden="true">«</span>
@@ -213,7 +222,7 @@
                                                         <span class="page-link" aria-current="page">{{ page_num }}</span>
                                                     {% else %}
                                                         <a class="page-link"
-                                                        href="{{ url_for('worker_classes.list_worker_classes', page=page_num, sort=sort_by, direction=sort_direction) }}">
+                                                        href="{{ url_for('worker_classes.list_worker_classes', page=page_num, sort=sort_by, direction=sort_direction, q=search_query, search_field=search_field) }}">
                                                             {{ page_num }}
                                                         </a>
                                                     {% endif %}
@@ -228,7 +237,7 @@
                                         <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
                                             {% if pagination.has_next %}
                                                 <a class="page-link"
-                                                href="{{ url_for('worker_classes.list_worker_classes', page=pagination.next_num, sort=sort_by, direction=sort_direction) }}"
+                                                href="{{ url_for('worker_classes.list_worker_classes', page=pagination.next_num, sort=sort_by, direction=sort_direction, q=search_query, search_field=search_field) }}"
                                                 aria-label="Next">»</a>
                                             {% else %}
                                                 <span class="page-link" aria-hidden="true">»</span>

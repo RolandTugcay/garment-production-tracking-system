@@ -1,7 +1,7 @@
 from src.extensions import db
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
-from sqlalchemy import text, Computed, BigInteger, Identity, Index
+from sqlalchemy import text, Computed, BigInteger, Identity, Index, UniqueConstraint
 
 #===================== AUDIT_LOGS =====================
 class AuditLog(db.Model):
@@ -62,13 +62,14 @@ class User(UserMixin, db.Model):
             onupdate="NO ACTION",
             ondelete="NO ACTION",
         ),
-        unique=True,
+        unique=False,
         nullable=True,
     )
 
     username = db.Column(db.String(50), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(50), nullable=False)
+    status = db.Column(db.String(50), nullable=False,server_default="Active")
 
     created_at = db.Column(db.DateTime(timezone=False),nullable=False,server_default=db.func.current_timestamp(),)
     updated_at = db.Column(db.DateTime(timezone=False),nullable=False,server_default=db.func.current_timestamp(),)
@@ -147,3 +148,102 @@ class Worker(db.Model):
     def __repr__(self):
         return f"<Worker {self.code}: {self.first_name} {self.last_name}>"
 
+#===================== CUSTOMERS =====================
+class Customer(db.Model):
+    __tablename__ = "customers"
+    __table_args__ = {"schema": "public"}
+
+    id = db.Column(
+        db.Integer,
+        Identity(always=False),
+        primary_key=True,
+    )
+
+    code = db.Column(db.String(20), nullable=False, unique=True)
+    name = db.Column(db.String(150), nullable=False)
+    status = db.Column(
+        db.String(20),
+        nullable=False,
+        server_default="Active",
+    )
+    address = db.Column(db.Text)
+    notes = db.Column(db.Text)
+
+    created_at = db.Column(
+        db.DateTime(timezone=False),
+        nullable=False,
+        server_default=db.func.current_timestamp(),
+    )
+    updated_at = db.Column(
+        db.DateTime(timezone=False),
+        nullable=False,
+        server_default=db.func.current_timestamp(),
+    )
+
+    def __repr__(self):
+        return f"<Customer {self.code}: {self.name}>"
+
+#===================== PURCHASE ORDER =====================
+class PurchaseOrder(db.Model):
+    __tablename__ = "purchase_order"
+
+    __table_args__ = (
+        UniqueConstraint(
+            "customer_id",
+            "po_number",
+            name="uq_purchase_order_customer_code",
+        ),
+        {"schema": "public"},
+    )
+
+    id = db.Column(
+        db.Integer,
+        Identity(always=False),
+        primary_key=True,
+    )
+
+    customer_id = db.Column(
+        db.Integer,
+        db.ForeignKey(
+            "public.customers.id",
+            name="fk_purchase_order_customer",
+            onupdate="NO ACTION",
+            ondelete="NO ACTION",
+        ),
+        nullable=False,
+    )
+
+    created_by_user_id = db.Column(
+        db.Integer,
+        db.ForeignKey(
+            "public.users.id",
+            name="fk_purchase_order_created_by",
+            onupdate="NO ACTION",
+            ondelete="NO ACTION",
+        ),
+        nullable=False,
+    )
+
+    po_number = db.Column(db.String(50), nullable=False)
+    order_date = db.Column(db.Date, nullable=False)
+    due_date = db.Column(db.Date, nullable=False)
+    status = db.Column(
+        db.String(30),
+        nullable=False,
+        server_default="received",
+    )
+    notes = db.Column(db.Text)
+
+    created_at = db.Column(
+        db.DateTime(timezone=False),
+        nullable=False,
+        server_default=db.func.current_timestamp(),
+    )
+    updated_at = db.Column(
+        db.DateTime(timezone=False),
+        nullable=False,
+        server_default=db.func.current_timestamp(),
+    )
+
+    def __repr__(self):
+        return f"<PurchaseOrder {self.po_number}>"

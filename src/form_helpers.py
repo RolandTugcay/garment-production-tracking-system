@@ -58,17 +58,29 @@ def save_record_from_form(*, db, model, form_data, field_rules, record=None):
 
         values[field_name] = value
 
-    # Before applying form values:
-    old_values = snapshot_record(record) if record is not None else None
-
     if record is None:
         record = model(**values)
         db.session.add(record)
         action = "CREATE"
     else:
-        for field_name, value in values.items():
+        # Ignore unchanged edit submissions so they do not create audit rows.
+        changed_values = {
+            field_name: value
+            for field_name, value in values.items()
+            if getattr(record, field_name) != value
+        }
+
+        if not changed_values:
+            return record, "unchanged"
+
+        old_values = snapshot_record(record)
+
+        for field_name, value in changed_values.items():
             setattr(record, field_name, value)
         action = "UPDATE"
+
+    if action == "CREATE":
+        old_values = None
 
     try:
         db.session.flush()

@@ -8,7 +8,7 @@ from flask import (
     url_for,
 )
 from flask_login import login_required
-from sqlalchemy import or_
+from sqlalchemy import String, cast, or_
 
 import src.models as models
 import src.form_helpers as form_helpers
@@ -21,18 +21,40 @@ worker_classes_bp = Blueprint("worker_classes", __name__)
 @login_required
 def list_worker_classes():
     search_query = (request.args.get("q", "", type=str) or "").strip()[:100]
+    search_field = (
+        request.args.get("search_field", "all_fields", type=str)
+        or "all_fields"
+    ).strip()
+
+    search_columns = {
+        "code": models.WorkerClass.code,
+        "name": models.WorkerClass.name,
+        "description": models.WorkerClass.description,
+        "status": models.WorkerClass.status,
+        "created_at": cast(models.WorkerClass.created_at, String),
+        "updated_at": cast(models.WorkerClass.updated_at, String),
+    }
+
+    if search_field != "all_fields" and search_field not in search_columns:
+        search_field = "all_fields"
 
     statement = db.select(models.WorkerClass)
 
     if search_query:
         search_pattern = f"%{search_query}%"
-        statement = statement.where(
-            or_(
-                models.WorkerClass.code.ilike(search_pattern),
-                models.WorkerClass.name.ilike(search_pattern),
-                models.WorkerClass.description.ilike(search_pattern),
+        if search_field == "all_fields":
+            statement = statement.where(
+                or_(
+                    *(
+                        column.ilike(search_pattern)
+                        for column in search_columns.values()
+                    )
+                )
             )
-        )
+        else:
+            statement = statement.where(
+                search_columns[search_field].ilike(search_pattern)
+            )
 
     sort_columns = {
         "id": models.WorkerClass.id,
@@ -88,6 +110,7 @@ def list_worker_classes():
         worker_classes=pagination.items,
         pagination=pagination,
         search_query=search_query,
+        search_field=search_field,
         sort_by=sort_by,
         sort_direction=sort_direction,
         used_worker_class_ids=used_worker_class_ids,
@@ -167,7 +190,9 @@ def edit_worker_class(worker_class_id):
         },
     )
 
-    if error:
+    if error == "unchanged":
+        flash("No changes were made.", "info")
+    elif error:
         flash(error, "danger")
     else:
         flash("Worker class updated successfully.", "success")

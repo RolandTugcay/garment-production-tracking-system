@@ -28,6 +28,8 @@ csrf = CSRFProtect(app)
 
 app.register_blueprint(routes.worker_classes_bp)
 app.register_blueprint(routes.workers_bp)
+app.register_blueprint(routes.users_bp)
+app.register_blueprint(routes.customers_bp)
 
 #=========================== LOGIN ===========================
 @login_manager.user_loader
@@ -46,7 +48,7 @@ def index():
         username = (request.form.get("username") or "").strip()
         password = request.form.get("password") or ""
 
-        user = models.User.query.filter_by(username=username).first()
+        user = models.User.query.filter_by(username=username, status='Active').first()
 
         if user and user.check_password(password):
             login_user(user)

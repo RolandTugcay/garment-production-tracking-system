@@ -18,7 +18,22 @@
     'workers.delete_worker'
 ] %}
 
-{% set system_setup_endpoints = worker_classes_endpoints + workers_endpoints %}
+{% set users_endpoints = [
+    'users.list_users',
+    'users.create_user',
+    'users.edit_user',
+    'users.delete_user'
+] %}
+
+{% set customers_endpoints = [
+    'customers.list_customers',
+    'customers.create_customer',
+    'customers.edit_customer',
+    'customers.delete_customer'
+] %}
+
+
+{% set system_setup_endpoints = worker_classes_endpoints + workers_endpoints + users_endpoints + customers_endpoints %}
 
 <!--begin::Sidebar-->
 <aside class="app-sidebar bg-body-secondary shadow" data-bs-theme="dark">
@@ -81,15 +96,16 @@
                             </a>
                         </li>
                         <li class="nav-item item">
-                            <a href="#"
-                               class="nav-link">
+                            <a href="{{ url_for('users.list_users') }}"
+                               class="nav-link {{ active_class(users_endpoints, current_endpoint) }}">
                                 <i class="nav-icon bi bi-person-badge"></i>
                                 <p>Users</p>
                             </a>
                         </li>
                         <li class="nav-item item">
-                            <a href="#"
-                               class="nav-link">
+                            <a href="{{ url_for('customers.list_customers') }}"
+                               class="nav-link {{ active_class(customers_endpoints, current_endpoint) }}"
+                               {% if current_endpoint in customers_endpoints %}aria-current="page"{% endif %}>
                                 <i class="nav-icon bi bi-briefcase"></i>
                                 <p>Customers</p>
                             </a>
@@ -101,40 +117,16 @@
                                 <p>Garment Types</p>
                             </a>
                         </li>
-                        <li class="nav-item item">
-                            <a href="#"
-                               class="nav-link">
-                                <i class="nav-icon bi bi-list-ol"></i>
-                                <p>Garment Jobs</p>
-                            </a>
-                        </li>
                     </ul>
                 </li>
 
                 <!-- Purchase Orders -->
-                <li class="nav-item">
-                    <a href="#"
-                       class="nav-link">
-                        <i class="nav-icon bi bi-clipboard2-minus-fill"></i>
-                        <p>Purchase Orders<i class="nav-arrow bi bi-chevron-right"></i></p>
+                 <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="nav-icon bi bi-cart-fill"></i>
+                        <p>Purchase Orders</p>
                     </a>
-
-                    <ul class="nav nav-treeview">
-                        <li class="nav-item item">
-                            <a href="#" class="nav-link">
-                                <i class="nav-icon bi bi-cart"></i>
-                                <p>Orders</p>
-                            </a>
-                        </li>
-                        <li class="nav-item item">
-                            <a href="#" class="nav-link">
-                                <i class="nav-icon bi bi-list-task"></i>
-                                <p>Order Items</p>
-                            </a>
-                        </li>
-                    </ul>
                 </li>
-
                 <!-- Production -->
                 <li class="nav-item">
                     <a href="#"

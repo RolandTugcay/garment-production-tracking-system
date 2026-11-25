@@ -9,6 +9,7 @@ from flask import (
     request,
     url_for,
 )
+
 from flask_login import login_required
 from sqlalchemy import String, cast, or_
 from sqlalchemy.exc import IntegrityError
@@ -20,12 +21,32 @@ from src.extensions import db
 workers_bp = Blueprint("workers", __name__)
 
 
-# WORKERS: LIST, SEARCH, FILTER, SORT, PAGINATE
+#==================== WORKERS: LIST, SEARCH, FILTER, SORT, PAGINATE ====================
 @workers_bp.get("/workers")
 @login_required
 def list_workers():
     search_query = (request.args.get("q", "", type=str) or "").strip()[:100]
+    search_field = (request.args.get("search_field", "all_fields", type=str) or "all_fields").strip()
     worker_class_id = request.args.get("worker_class_id", type=int)
+
+    search_columns = {
+        "code": models.Worker.code,
+        "worker_class": models.WorkerClass.name,
+        "status": models.Worker.status,
+        "first_name": models.Worker.first_name,
+        "last_name": models.Worker.last_name,
+        "phone": models.Worker.phone,
+        "email": models.Worker.email,
+        "address": models.Worker.address,
+        "hire_date": cast(models.Worker.hire_date, String),
+        "notes": models.Worker.notes,
+        "created_at": cast(models.Worker.created_at, String),
+        "updated_at": cast(models.Worker.updated_at, String),
+    }
+
+    # Ignore unknown field names supplied in the URL.
+    if search_field != "all_fields" and search_field not in search_columns:
+        search_field = "all_fields"
 
     statement = (
         db.select(models.Worker)
@@ -37,19 +58,20 @@ def list_workers():
 
     if search_query:
         search_pattern = f"%{search_query}%"
-        statement = statement.where(
-            or_(
-                models.Worker.first_name.ilike(search_pattern),
-                models.Worker.last_name.ilike(search_pattern),
-                models.Worker.phone.ilike(search_pattern),
-                models.Worker.email.ilike(search_pattern),
-                models.Worker.notes.ilike(search_pattern),
-                models.Worker.code.ilike(search_pattern),
-                models.Worker.status.ilike(search_pattern),
-                cast(models.Worker.hire_date, String).ilike(search_pattern),
-                models.WorkerClass.name.ilike(search_pattern),
+
+        if search_field == "all_fields":
+            statement = statement.where(
+                or_(
+                    *(
+                        column.ilike(search_pattern)
+                        for column in search_columns.values()
+                    )
+                )
             )
-        )
+        else:
+            statement = statement.where(
+                search_columns[search_field].ilike(search_pattern)
+            )
 
     if worker_class_id is not None:
         statement = statement.where(
@@ -110,7 +132,7 @@ def list_workers():
         )
 
     worker_classes = db.session.execute(
-        db.select(models.WorkerClass).order_by(models.WorkerClass.name.asc())
+        db.select(models.WorkerClass).filter_by(status='Active').order_by(models.WorkerClass.name.asc())
     ).scalars().all()
 
     return render_template(
@@ -123,9 +145,11 @@ def list_workers():
         sort_by=sort_by,
         sort_direction=sort_direction,
         used_worker_ids=used_worker_ids,
+        search_field=search_field,
     )
 
 
+#==================== RAED FORM INPUTS ====================
 def read_worker_form(worker_id=None):
     first_name = (request.form.get("first_name") or "").strip()
     last_name = (request.form.get("last_name") or "").strip()
@@ -137,22 +161,19 @@ def read_worker_form(worker_id=None):
     notes = (request.form.get("notes") or "").strip() or None
     worker_class_id_value = (request.form.get("worker_class_id") or "").strip()
 
+    # Validate inputs
     if not first_name:
         return None, "First name is required."
     if len(first_name) > 50:
         return None, "First name must be 50 characters or fewer."
-
     if not last_name:
         return None, "Last name is required."
     if len(last_name) > 50:
         return None, "Last name must be 50 characters or fewer."
-
     if phone and len(phone) > 30:
         return None, "Phone must be 30 characters or fewer."
-
     if email and len(email) > 254:
         return None, "Email must be 254 characters or fewer."
-
     if status not in {"Active", "Inactive", "Terminated", "On leave"}:
         return None, "Select a valid worker status."
 
@@ -175,10 +196,12 @@ def read_worker_form(worker_id=None):
         except ValueError:
             return None, "Enter a valid hire date."
 
+
     if email:
         email_query = db.select(models.Worker.id).where(
             models.Worker.email == email
         )
+
         if worker_id is not None:
             email_query = email_query.where(models.Worker.id != worker_id)
 
@@ -198,7 +221,7 @@ def read_worker_form(worker_id=None):
     }, None
 
 
-# WORKERS: CREATE
+#==================== WORKERS: CREATE ====================
 @workers_bp.post("/workers")
 @login_required
 def create_worker():
@@ -232,7 +255,7 @@ def create_worker():
     return redirect(url_for("workers.list_workers"))
 
 
-# WORKERS: EDIT
+#==================== WORKERS: EDIT ====================
 @workers_bp.post("/workers/<int:worker_id>/edit")
 @login_required
 def edit_worker(worker_id):
@@ -246,9 +269,20 @@ def edit_worker(worker_id):
         flash(error, "danger")
         return redirect(url_for("workers.list_workers"))
 
+    # Skip the database update and audit entry when submitted fields are unchanged.
+    changed_values = {
+        field: value
+        for field, value in values.items()
+        if getattr(worker, field) != value
+    }
+
+    if not changed_values:
+        flash("No changes were made.", "info")
+        return redirect(url_for("workers.list_workers"))
+
     old_values = snapshot_record(worker)
 
-    for field, value in values.items():
+    for field, value in changed_values.items():
         setattr(worker, field, value)
 
     try:
@@ -273,7 +307,7 @@ def edit_worker(worker_id):
     return redirect(url_for("workers.list_workers"))
 
 
-# WORKERS: DELETE
+#==================== WORKERS: DELETE ====================
 @workers_bp.post("/workers/<int:worker_id>/delete")
 @login_required
 def delete_worker(worker_id):

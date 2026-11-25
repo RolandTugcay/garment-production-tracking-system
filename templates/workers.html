@@ -58,10 +58,45 @@
                             <!--begin::Card Header-->
                             <div class="card-header">
                                 <div class="row g-2 align-items-center">
-                                    <div class="col-12 col-md-4">
+                                    <div class="col-12 col-md-8">
                                         <h3 class="card-title">
                                             <form action="{{ url_for('workers.list_workers') }}" method="get" role="search">
                                                 <div class="input-group input-group-sm w-auto">
+                                                    <select class="form-control flex-shrink-0"
+                                                            id="worker-search-field"
+                                                            name="search_field"
+                                                            style="width: 120px;">
+                                                        <option value="all_fields"
+                                                            {% if search_field == "all_fields" %}selected{% endif %}>
+                                                            All Fields
+                                                        </option>
+                                                        <option value="code"
+                                                            {% if search_field == "code" %}selected{% endif %}>Code</option>
+                                                        <option value="worker_class"
+                                                            {% if search_field == "worker_class" %}selected{% endif %}>
+                                                            Worker Class
+                                                        </option>
+                                                        <option value="status"
+                                                            {% if search_field == "status" %}selected{% endif %}>Status</option>
+                                                        <option value="first_name"
+                                                            {% if search_field == "first_name" %}selected{% endif %}>First Name</option>
+                                                        <option value="last_name"
+                                                            {% if search_field == "last_name" %}selected{% endif %}>Last Name</option>
+                                                        <option value="phone"
+                                                            {% if search_field == "phone" %}selected{% endif %}>Phone</option>
+                                                        <option value="email"
+                                                            {% if search_field == "email" %}selected{% endif %}>Email</option>
+                                                        <option value="address"
+                                                            {% if search_field == "address" %}selected{% endif %}>Address</option>
+                                                        <option value="hire_date"
+                                                            {% if search_field == "hire_date" %}selected{% endif %}>Hire Date</option>
+                                                        <option value="notes"
+                                                            {% if search_field == "notes" %}selected{% endif %}>Notes</option>
+                                                        <option value="created_at"
+                                                            {% if search_field == "created_at" %}selected{% endif %}>Created At</option>
+                                                        <option value="updated_at"
+                                                            {% if search_field == "updated_at" %}selected{% endif %}>Updated At</option>
+                                                    </select>
                                                     <input type="search"
                                                         id="worker-search"
                                                         name="q"
@@ -78,7 +113,7 @@
                                             </form>
                                         </h3>
                                     </div>
-                                    <div class="col-12 col-md-8">
+                                    <div class="col-12 col-md-4">
                                         <div class="d-flex flex-wrap justify-content-md-end gap-2">
                                             <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modal-save-worker" title="Add new worker">
                                                 <i class="bi bi-plus me-1" aria-hidden="true"></i>New
@@ -220,8 +255,15 @@
                                         <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
                                             {% if pagination.has_prev %}
                                                 <a class="page-link"
-                                                href="{{ url_for('workers.list_workers', page=pagination.prev_num, sort=sort_by, direction=sort_direction) }}"
-                                                aria-label="Previous">«</a>
+                                                    href="{{ url_for('workers.list_workers', 
+                                                        page=pagination.prev_num, 
+                                                        sort=sort_by, 
+                                                        direction=sort_direction,
+                                                        search_field=search_field,
+                                                        worker_class_id=worker_class_id,
+                                                        q=search_query
+                                                    ) }}"
+                                                    aria-label="Previous">«</a>
                                             {% else %}
                                                 <span class="page-link" aria-hidden="true">«</span>
                                             {% endif %}
@@ -239,7 +281,14 @@
                                                         <span class="page-link" aria-current="page">{{ page_num }}</span>
                                                     {% else %}
                                                         <a class="page-link"
-                                                        href="{{ url_for('workers.list_workers', page=page_num, sort=sort_by, direction=sort_direction) }}">
+                                                            href="{{ url_for('workers.list_workers', 
+                                                                page=page_num, 
+                                                                sort=sort_by, 
+                                                                direction=sort_direction,
+                                                                search_field=search_field,
+                                                                worker_class_id=worker_class_id,
+                                                                q=search_query
+                                                            ) }}">
                                                             {{ page_num }}
                                                         </a>
                                                     {% endif %}
@@ -254,7 +303,14 @@
                                         <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
                                             {% if pagination.has_next %}
                                                 <a class="page-link"
-                                                href="{{ url_for('workers.list_workers', page=pagination.next_num, sort=sort_by, direction=sort_direction) }}"
+                                                    href="{{ url_for('workers.list_workers', 
+                                                    page=pagination.next_num,
+                                                    sort=sort_by, 
+                                                    direction=sort_direction,
+                                                    search_field=search_field,
+                                                    worker_class_id=worker_class_id,
+                                                    q=search_query
+                                                ) }}"
                                                 aria-label="Next">»</a>
                                             {% else %}
                                                 <span class="page-link" aria-hidden="true">»</span>
