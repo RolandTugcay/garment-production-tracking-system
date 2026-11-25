@@ -25,6 +25,7 @@ workers_bp = Blueprint("workers", __name__)
 @workers_bp.get("/workers")
 @login_required
 def list_workers():
+    # Read and limit search, field, and filter inputs.
     search_query = (request.args.get("q", "", type=str) or "").strip()[:100]
     search_field = (request.args.get("search_field", "all_fields", type=str) or "all_fields").strip()
     worker_class_id = request.args.get("worker_class_id", type=int)
@@ -56,6 +57,7 @@ def list_workers():
         )
     )
 
+    # Apply text search across the chosen field or all searchable fields.
     if search_query:
         search_pattern = f"%{search_query}%"
 
@@ -78,6 +80,7 @@ def list_workers():
             models.Worker.worker_class_id == worker_class_id
         )
 
+    # Map allowed sort options to model columns.
     sort_columns = {
         "id": models.Worker.id,
         "first_name": models.Worker.first_name,
@@ -102,6 +105,7 @@ def list_workers():
     if sort_direction not in {"asc", "desc"}:
         sort_direction = "asc"
 
+    # Build the final sort expression and paginate worker records.
     sort_column = sort_columns[sort_by]
     order_by = (
         sort_column.asc().nulls_last()
@@ -131,6 +135,7 @@ def list_workers():
             ).scalars()
         )
 
+    # Load active classes for the worker form dropdown.
     worker_classes = db.session.execute(
         db.select(models.WorkerClass).filter_by(status='Active').order_by(models.WorkerClass.name.asc())
     ).scalars().all()
@@ -149,8 +154,9 @@ def list_workers():
     )
 
 
-#==================== RAED FORM INPUTS ====================
+#==================== WORKERS: READ FORM INPUTS ====================
 def read_worker_form(worker_id=None):
+    # Read and normalize submitted worker fields.
     first_name = (request.form.get("first_name") or "").strip()
     last_name = (request.form.get("last_name") or "").strip()
     phone = (request.form.get("phone") or "").strip() or None
@@ -161,7 +167,7 @@ def read_worker_form(worker_id=None):
     notes = (request.form.get("notes") or "").strip() or None
     worker_class_id_value = (request.form.get("worker_class_id") or "").strip()
 
-    # Validate inputs
+    # Validate required text fields and field lengths.
     if not first_name:
         return None, "First name is required."
     if len(first_name) > 50:
@@ -182,6 +188,7 @@ def read_worker_form(worker_id=None):
     except (TypeError, ValueError):
         worker_class_id = None
 
+    # Require an existing worker class selection.
     if worker_class_id is None:
         return None, "Select a worker class."
 
@@ -196,7 +203,7 @@ def read_worker_form(worker_id=None):
         except ValueError:
             return None, "Enter a valid hire date."
 
-
+    # Reject duplicate email addresses, excluding the worker being edited.
     if email:
         email_query = db.select(models.Worker.id).where(
             models.Worker.email == email
@@ -208,6 +215,7 @@ def read_worker_form(worker_id=None):
         if db.session.execute(email_query).scalar_one_or_none() is not None:
             return None, "A worker with that email already exists."
 
+    # Return normalized values for create or update operations.
     return {
         "first_name": first_name,
         "last_name": last_name,
@@ -225,6 +233,7 @@ def read_worker_form(worker_id=None):
 @workers_bp.post("/workers")
 @login_required
 def create_worker():
+    # Validate and normalize the submitted form.
     values, error = read_worker_form()
 
     if error:
@@ -233,6 +242,7 @@ def create_worker():
 
     worker = models.Worker(**values)
 
+    # Save the worker and record the creation in the audit log.
     try:
         db.session.add(worker)
         db.session.flush()
@@ -259,6 +269,7 @@ def create_worker():
 @workers_bp.post("/workers/<int:worker_id>/edit")
 @login_required
 def edit_worker(worker_id):
+    # Load the target worker or return a 404 response.
     worker = db.session.get(models.Worker, worker_id)
     if worker is None:
         abort(404)
@@ -282,9 +293,11 @@ def edit_worker(worker_id):
 
     old_values = snapshot_record(worker)
 
+    # Apply only the fields that changed.
     for field, value in changed_values.items():
         setattr(worker, field, value)
 
+    # Save the changes and add an update audit entry.
     try:
         db.session.flush()
         db.session.refresh(worker)
@@ -311,6 +324,7 @@ def edit_worker(worker_id):
 @workers_bp.post("/workers/<int:worker_id>/delete")
 @login_required
 def delete_worker(worker_id):
+    # Load the target worker or return a 404 response.
     worker = db.session.get(models.Worker, worker_id)
     if worker is None:
         abort(404)
@@ -331,6 +345,7 @@ def delete_worker(worker_id):
 
     old_values = snapshot_record(worker)
 
+    # Delete the worker and record the deletion in the audit log.
     try:
         db.session.delete(worker)
 

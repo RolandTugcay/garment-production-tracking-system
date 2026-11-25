@@ -20,6 +20,7 @@ worker_classes_bp = Blueprint("worker_classes", __name__)
 @worker_classes_bp.get("/worker-classes")
 @login_required
 def list_worker_classes():
+    # Read and limit search and field inputs.
     search_query = (request.args.get("q", "", type=str) or "").strip()[:100]
     search_field = (
         request.args.get("search_field", "all_fields", type=str)
@@ -35,11 +36,14 @@ def list_worker_classes():
         "updated_at": cast(models.WorkerClass.updated_at, String),
     }
 
+    # Fall back to an all-fields search when the field name is invalid.
     if search_field != "all_fields" and search_field not in search_columns:
         search_field = "all_fields"
 
+    # Start with the complete worker-class list.
     statement = db.select(models.WorkerClass)
 
+    # Apply text search across the selected field or all searchable fields.
     if search_query:
         search_pattern = f"%{search_query}%"
         if search_field == "all_fields":
@@ -66,6 +70,7 @@ def list_worker_classes():
         "updated_at": models.WorkerClass.updated_at,
     }
 
+    # Validate the sort field and direction.
     sort_by = request.args.get("sort", "id")
     if sort_by not in sort_columns:
         sort_by = "id"
@@ -74,6 +79,7 @@ def list_worker_classes():
     if sort_direction not in {"asc", "desc"}:
         sort_direction = "asc"
 
+    # Build the sort expression and paginate worker-class records.
     sort_column = sort_columns[sort_by]
     order_by = (
         sort_column.asc().nulls_last()
@@ -105,6 +111,7 @@ def list_worker_classes():
             ).scalars().all()
         )
 
+    # Render the list and pagination state.
     return render_template(
         "worker-classes.html",
         worker_classes=pagination.items,
@@ -121,6 +128,7 @@ def list_worker_classes():
 @worker_classes_bp.post("/worker-classes")
 @login_required
 def create_worker_class():
+    # Validate the submitted fields and save a new worker class.
     _, error = form_helpers.save_record_from_form(
         db=db,
         model=models.WorkerClass,
@@ -154,6 +162,7 @@ def create_worker_class():
     else:
         flash("Worker class added successfully.", "success")
 
+    # Return to the worker-class list.
     return redirect(url_for("worker_classes.list_worker_classes"))
 
 
@@ -161,11 +170,13 @@ def create_worker_class():
 @worker_classes_bp.post("/worker-classes/<int:worker_class_id>/edit")
 @login_required
 def edit_worker_class(worker_class_id):
+    # Load the target worker class or return a 404 response.
     worker_class = db.session.get(models.WorkerClass, worker_class_id)
 
     if worker_class is None:
         abort(404)
 
+    # Save the editable fields while preserving the worker-class code.
     _, error = form_helpers.save_record_from_form(
         db=db,
         model=models.WorkerClass,
@@ -197,6 +208,7 @@ def edit_worker_class(worker_class_id):
     else:
         flash("Worker class updated successfully.", "success")
 
+    # Return to the worker-class list.
     return redirect(url_for("worker_classes.list_worker_classes"))
 
 
@@ -204,6 +216,7 @@ def edit_worker_class(worker_class_id):
 @worker_classes_bp.post("/worker-classes/<int:worker_class_id>/delete")
 @login_required
 def delete_worker_class(worker_class_id):
+    # Delete only when no worker or other protected usage references the class.
     _, error = form_helpers.delete_record(
         db=db,
         model=models.WorkerClass,
@@ -228,4 +241,5 @@ def delete_worker_class(worker_class_id):
     else:
         flash("Worker class deleted successfully.", "success")
 
+    # Return to the worker-class list.
     return redirect(url_for("worker_classes.list_worker_classes"))

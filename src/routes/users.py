@@ -17,14 +17,16 @@ from src.extensions import db
 
 users_bp = Blueprint("users", __name__)
 
+#=========================== Supported values used for form validation. ===========================
 ALLOWED_ROLES = {"Administrator", "Manager", "User", "Guest"}
 ALLOWED_STATUSES = {"Active", "Inactive"}
 
 
-# USERS: LIST, SEARCH, FILTER, SORT, PAGINATE
+#=========================== USERS: LIST, SEARCH, FILTER, SORT, PAGINATE ===========================
 @users_bp.get("/users")
 @login_required
 def list_users():
+    # Read and limit the search and filter inputs from the request.
     search_query = (request.args.get("q", "", type=str) or "").strip()[:100]
     search_field = (
         request.args.get("search_field", "all_fields", type=str)
@@ -47,9 +49,11 @@ def list_users():
         "updated_at": cast(models.User.updated_at, String),
     }
 
+    # Fall back to an all-fields search when the requested field is invalid.
     if search_field != "all_fields" and search_field not in search_columns:
         search_field = "all_fields"
 
+    # Start with the user list and join worker details for search and display.
     statement = (
         db.select(models.User)
         .outerjoin(
@@ -58,6 +62,7 @@ def list_users():
         )
     )
 
+    # Apply text search across the selected field or all searchable fields.
     if search_query:
         search_pattern = f"%{search_query}%"
         if search_field == "all_fields":
@@ -77,6 +82,7 @@ def list_users():
     if worker_id is not None:
         statement = statement.where(models.User.worker_id == worker_id)
 
+    # Map allowed sort options to model columns.
     sort_columns = {
         "id": models.User.id,
         "username": models.User.username,
@@ -95,6 +101,7 @@ def list_users():
     if sort_direction not in {"asc", "desc"}:
         sort_direction = "asc"
 
+    # Build the final sort expression and paginate the result.
     sort_column = sort_columns[sort_by]
     order_by = (
         sort_column.asc().nulls_last()
@@ -111,6 +118,7 @@ def list_users():
         max_per_page=50,
     )
 
+    # Collect user IDs linked to audit records so those accounts cannot be deleted.
     user_ids = [user.id for user in pagination.items]
     used_user_ids = set()
 
@@ -162,14 +170,16 @@ def list_users():
         used_user_ids=used_user_ids,
     )
 
-
+#=========================== USERS: READ FORM INPUTS ===========================
 def read_user_form(*, user_id=None):
+    # Read and normalize submitted account fields.
     username = (request.form.get("username") or "").strip()
     password = (request.form.get("password") or "").strip()
     role = (request.form.get("role") or "").strip()
     status = (request.form.get("status") or "").strip()
     worker_id_value = (request.form.get("worker_id") or "").strip()
 
+    # Validate the username and password requirements.
     if not username:
         return None, "Username is required."
     if len(username) < 8 or len(username) > 15:
@@ -180,11 +190,13 @@ def read_user_form(*, user_id=None):
     if password and len(password) < 8:
         return None, "Password must be at least 8 characters."
 
+    # Validate role and status selections.
     if role not in ALLOWED_ROLES:
         return None, "Select a valid role."
     if status not in ALLOWED_STATUSES:
         return None, "Select a valid user status."
 
+    # Convert and verify the selected worker.
     if worker_id_value:
         try:
             worker_id = int(worker_id_value)
@@ -199,6 +211,7 @@ def read_user_form(*, user_id=None):
     ):
         return None, "The selected worker does not exist."
 
+    # Reject duplicate usernames, excluding the account being edited.
     username_query = db.select(models.User.id).where(
         models.User.username == username
     )
@@ -208,6 +221,7 @@ def read_user_form(*, user_id=None):
     if db.session.execute(username_query).scalar_one_or_none() is not None:
         return None, "Username already exists."
 
+    # Return normalized values for create or update operations.
     values = {
         "username": username,
         "role": role,
@@ -218,10 +232,11 @@ def read_user_form(*, user_id=None):
     return values, None
 
 
-# USERS: CREATE
+#=========================== USERS: CREATE ===========================
 @users_bp.post("/users")
 @login_required
 def create_user():
+    # Validate and normalize the submitted form.
     values, error = read_user_form()
 
     if error:
@@ -232,6 +247,7 @@ def create_user():
     user = models.User(**values)
     user.set_password(password)
 
+    # Save the account and record its creation in the audit log.
     try:
         db.session.add(user)
         db.session.flush()
@@ -257,10 +273,11 @@ def create_user():
     return redirect(url_for("users.list_users"))
 
 
-# USERS: EDIT
+#=========================== USERS: EDIT ===========================
 @users_bp.post("/users/<int:user_id>/edit")
 @login_required
 def edit_user(user_id):
+    # Load the target account or return a 404 response.
     user = db.session.get(models.User, user_id)
     if user is None:
         abort(404)
@@ -272,6 +289,8 @@ def edit_user(user_id):
         return redirect(url_for("users.list_users"))
 
     password = values.pop("password")
+
+    # Compare submitted values against the existing account.
     changed_values = {
         field: value
         for field, value in values.items()
@@ -283,6 +302,7 @@ def edit_user(user_id):
         flash("No changes were made.", "info")
         return redirect(url_for("users.list_users"))
 
+    # Capture the original state and apply changed fields.
     old_values = snapshot_record(user)
 
     for field, value in changed_values.items():
@@ -291,6 +311,7 @@ def edit_user(user_id):
     if password_changed:
         user.set_password(password)
 
+    # Save the changes and add an update audit entry.
     try:
         db.session.flush()
         db.session.refresh(user)
@@ -316,10 +337,11 @@ def edit_user(user_id):
     return redirect(url_for("users.list_users"))
 
 
-# USERS: DELETE
+#=========================== USERS: DELETE ===========================
 @users_bp.post("/users/<int:user_id>/delete")
 @login_required
 def delete_user(user_id):
+    # Load the target account or return a 404 response.
     user = db.session.get(models.User, user_id)
     if user is None:
         abort(404)
@@ -328,6 +350,7 @@ def delete_user(user_id):
         flash("You cannot delete the account you are currently using.", "danger")
         return redirect(url_for("users.list_users"))
 
+    # Prevent deletion of accounts that performed audited actions.
     existing_audit = db.session.execute(
         db.select(models.AuditLog.id)
         .where(models.AuditLog.action_by_user_id == user_id)
@@ -343,6 +366,7 @@ def delete_user(user_id):
 
     old_values = snapshot_record(user)
 
+    # Delete the account and record the deletion in the audit log.
     try:
         db.session.delete(user)
 
