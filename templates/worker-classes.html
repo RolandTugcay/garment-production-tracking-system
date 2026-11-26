@@ -125,8 +125,8 @@
                                                 {{ sort_header("Name", "name", sort_by, sort_direction) }}
                                                 {{ sort_header("Description", "description", sort_by, sort_direction) }}
                                                 {{ sort_header("Status", "status", sort_by, sort_direction) }}
-                                                {{ sort_header("Created", "created_at", sort_by, sort_direction) }}
-                                                {{ sort_header("Updated", "updated_at", sort_by, sort_direction) }}
+                                                {{ sort_header("Created At", "created_at", sort_by, sort_direction) }}
+                                                {{ sort_header("Updated At", "updated_at", sort_by, sort_direction) }}
                                                 <th class="text-end" scope="col">Actions</th>
                                             </tr>
                                         </thead>
@@ -143,8 +143,8 @@
                                                         <span class="badge text-bg-secondary">Inactive</span>
                                                     {% endif %}
                                                 </td>
-                                                <td>{{ worker_class.created_at.strftime("%Y-%m-%d %H:%M") }}</td>
-                                                <td>{{ worker_class.updated_at.strftime("%Y-%m-%d %H:%M") }}</td>
+                                                <td>{{ worker_class.created_at.strftime("%Y-%m-%d %I:%M %p") }}</td>
+                                                <td>{{ worker_class.updated_at.strftime("%Y-%m-%d %I:%M %p") }}</td>
                                                 <td class="text-end">
                                                     <button type="button" title="Edit"
                                                         class="btn btn-sm btn-outline-secondary"
@@ -266,7 +266,7 @@
                                 method="post">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <div class="modal-header">
-                                    <h5 class="modal-title" id="modal-save-worker-class-label">
+                                    <h5 class="modal-title fs-6" id="modal-save-worker-class-label">
                                         Add new worker class
                                     </h5>
                                     <button type="button"
@@ -276,39 +276,47 @@
                                     </button>
                                 </div>
                                 <div class="modal-body">
-                                    <div class="mb-3">
-                                        <label for="new-worker-class-code" class="form-label">Code</label>
-                                        <input type="text"
-                                            class="form-control"
-                                            id="new-worker-class-code"
-                                            name="code"
-                                            maxlength="10"
-                                            required
-                                            oninput="this.value = this.value.toUpperCase()">
+                                    <div class="modal-body-row">
+                                        <div class="modal-body-column col-md-2">
+                                            <div class="mb-3">
+                                                <label for="new-worker-class-code" class="form-label fs-7">Code</label>
+                                                <input type="text"
+                                                    class="form-control fs-7"
+                                                    id="new-worker-class-code"
+                                                    name="code"
+                                                    maxlength="10"
+                                                    required
+                                                    oninput="this.value = this.value.toUpperCase()">
+                                            </div>
+                                        </div>
+                                        <div class="modal-body-column">
+                                            <div class="mb-3">
+                                                <label for="new-worker-class-name" class="form-label fs-7">Name</label>
+                                                <input type="text"
+                                                    class="form-control fs-7"
+                                                    id="new-worker-class-name"
+                                                    name="name"
+                                                    maxlength="50"
+                                                    required>
+                                            </div>
+                                        </div>
+                                        <div class="modal-body-column col-md-3">
+                                            <div class="mb-3">
+                                                <label for="new-worker-class-status" class="form-label fs-7">
+                                                    Status
+                                                </label>
+                                                <select class="form-select fs-7" id="new-worker-class-status" name="status">
+                                                    <option selected="">Active</option>
+                                                    <option>Inactive</option>
+                                                </select>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="mb-3">
-                                        <label for="new-worker-class-name" class="form-label">Name</label>
-                                        <input type="text"
-                                            class="form-control"
-                                            id="new-worker-class-name"
-                                            name="name"
-                                            maxlength="50"
-                                            required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="new-worker-class-status" class="form-label">
-                                            Status
-                                        </label>
-                                        <select class="form-select" id="new-worker-class-status" name="status">
-                                            <option selected="">Active</option>
-                                            <option>Inactive</option>
-                                        </select>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="new-worker-class-description" class="form-label">
+                                        <label for="new-worker-class-description" class="form-label fs-7">
                                             Description
                                         </label>
-                                        <textarea class="form-control"
+                                        <textarea class="form-control fs-7"
                                                 id="new-worker-class-description"
                                                 name="description"
                                                 style="height: 6rem">
@@ -337,7 +345,7 @@
                                 method="post">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <div class="modal-header">
-                                    <h5 class="modal-title" id="modal-delete-worker-class-label">Delete worker class</h5>
+                                    <h5 class="modal-title fs-6" id="modal-delete-worker-class-label">Delete worker class</h5>
                                     <button
                                     type="button"
                                     class="btn-close"
@@ -346,7 +354,7 @@
                                     ></button>
                                 </div>
                                 <div class="modal-body">
-                                    <p class="mb-0" id="modal-delete-worker-class-message"></p>
+                                    <p class="mb-0 fs-7" id="modal-delete-worker-class-message"></p>
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>

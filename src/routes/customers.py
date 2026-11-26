@@ -9,7 +9,7 @@ from flask import (
     url_for,
 )
 from flask_login import login_required
-from sqlalchemy import String, cast, or_
+from sqlalchemy import String, cast, func, or_
 from sqlalchemy.exc import IntegrityError
 
 import src.models as models
@@ -122,6 +122,44 @@ def list_customers():
             ).scalars()
         )
 
+    # Load at most five contacts per customer, prioritizing primary and recently updated contacts.
+    customer_contacts = []
+    if customer_ids:
+        ranked_contacts = (
+            db.select(
+                models.CustomerContact.id.label("contact_id"),
+                func.row_number()
+                .over(
+                    partition_by=models.CustomerContact.customer_id,
+                    order_by=(
+                        models.CustomerContact.is_primary.desc(),
+                        models.CustomerContact.updated_at.desc(),
+                        models.CustomerContact.id.desc(),
+                    ),
+                )
+                .label("contact_rank"),
+            )
+            .where(models.CustomerContact.customer_id.in_(customer_ids))
+            .subquery()
+        )
+
+        customer_contacts = (
+            db.session.execute(
+                db.select(models.CustomerContact)
+                .join(
+                    ranked_contacts,
+                    ranked_contacts.c.contact_id == models.CustomerContact.id,
+                )
+                .where(ranked_contacts.c.contact_rank <= 5)
+                .order_by(
+                    models.CustomerContact.customer_id,
+                    ranked_contacts.c.contact_rank,
+                )
+            )
+            .scalars()
+            .all()
+        )
+
     # Send customer records and page controls to the template.
     return render_template(
         "customers.html",
@@ -131,7 +169,8 @@ def list_customers():
         search_field=search_field,
         sort_by=sort_by,
         sort_direction=sort_direction,
-        customers_with_orders=customers_with_orders
+        customers_with_orders=customers_with_orders,
+        customer_contacts=customer_contacts
     )
 
 

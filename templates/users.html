@@ -153,8 +153,8 @@
                                                         <span class="badge text-bg-secondary">Inactive</span>
                                                     {% endif %}
                                                 </td>
-                                                <td>{{ user.created_at.strftime("%Y-%m-%d %H:%M") }}</td>
-                                                <td>{{ user.updated_at.strftime("%Y-%m-%d %H:%M") }}</td>
+                                                <td>{{ user.created_at.strftime("%Y-%m-%d %I:%M %p") }}</td>
+                                                <td>{{ user.updated_at.strftime("%Y-%m-%d %I:%M %p") }}</td>
                                                 <td class="text-end">
                                                     <button type="button" title="Edit"
                                                         class="btn btn-sm btn-outline-secondary"
@@ -305,45 +305,57 @@
                                             {% endfor %}
                                         </select>
 									</div>
-									<div class="mb-3">
-										<label for="new-user-first-name" class="form-label">Username</label>
-										<input type="text"
-											class="form-control fs-7"
-											id="new-user-username"
-											name="username"
-											maxlength="15"
-											required
-                                        >
-                                        <div id="usernameFeedback" class="feedback" aria-live="polite"></div>
-									</div>
-									<div class="mb-3">
-										<label for="new-user-password" class="form-label" id="lb-new-user-password">Password</label>
-                                        <input
-                                            type="password"
-                                            class="form-control fs-7"
-                                            id="new-user-password"
-                                            name="password"
-                                            maxlength="64"
-                                            autocomplete="new-password"
-                                        >
-                                        <div id="passwordFeedback" class="feedback" aria-live="polite"></div>
-									</div>
-									<div class="mb-3">
-										<label for="new-user-role" class="form-label">Role</label>
-										<select class="form-select fs-7" id="new-user-role" name="role">
-											<option>Administrator</option>
-											<option>Guest</option>
-											<option>Manager</option>
-											<option selected="">User</option>
-										</select>
-									</div>
-									<div class="mb-3">
-										<label for="new-user-status" class="form-label">Status</label>
-										<select class="form-select fs-7" id="new-user-status" name="status">
-											<option selected="">Active</option>
-											<option>Inactive</option>
-										</select>
-									</div>
+                                    <div class="modal-body-row">
+                                        <div class="modal-body-column">
+                                            <div class="mb-3">
+                                                <label for="new-user-first-name" class="form-label">Username</label>
+                                                <input type="text"
+                                                    class="form-control fs-7"
+                                                    id="new-user-username"
+                                                    name="username"
+                                                    maxlength="15"
+                                                    required
+                                                >
+                                                <div id="usernameFeedback" class="feedback" aria-live="polite"></div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-body-column">
+                                            <div class="mb-3">
+                                                <label for="new-user-password" class="form-label" id="lb-new-user-password">Password</label>
+                                                <input
+                                                    type="password"
+                                                    class="form-control fs-7"
+                                                    id="new-user-password"
+                                                    name="password"
+                                                    maxlength="64"
+                                                    autocomplete="new-password"
+                                                >
+                                                <div id="passwordFeedback" class="feedback" aria-live="polite"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-body-row">
+                                        <div class="modal-body-column">
+                                            <div class="mb-3">
+                                                <label for="new-user-role" class="form-label">Role</label>
+                                                <select class="form-select fs-7" id="new-user-role" name="role">
+                                                    <option>Administrator</option>
+                                                    <option>Guest</option>
+                                                    <option>Manager</option>
+                                                    <option selected="">User</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="modal-body-column">
+                                            <div class="mb-3">
+                                                <label for="new-user-status" class="form-label">Status</label>
+                                                <select class="form-select fs-7" id="new-user-status" name="status">
+                                                    <option selected="">Active</option>
+                                                    <option>Inactive</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
 								</div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
@@ -366,7 +378,7 @@
                                 method="post">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <div class="modal-header">
-                                    <h5 class="modal-title" id="modal-delete-user-label">Delete user</h5>
+                                    <h5 class="modal-title fs-6" id="modal-delete-user-label">Delete user</h5>
                                     <button
                                     type="button"
                                     class="btn-close"
@@ -375,7 +387,7 @@
                                     ></button>
                                 </div>
                                 <div class="modal-body">
-                                    <p class="mb-0" id="modal-delete-user-message"></p>
+                                    <p class="mb-0 fs-7" id="modal-delete-user-message"></p>
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>

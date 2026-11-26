@@ -1,8 +1,23 @@
+:root {
+    --border: #e4e9ef;
+    --background: #212529;
+    --light-background: #ffffff;
+    --muted: #b4b5b6;
+    --muted-alt: #919192;
+    --sub-table-bg:  #EEEEEE;
+    --un-muted: #1d1e1f;
+    --sub-primary: #3c8dbc;
+    --primary: #0d6efd;
+    --primary-hover: #1d4ed8;
+    --sub-bg: #f1f5f9;
+    --surface: #ffffff;
+}
+
 .brand-mark {
     width: 40px;
     height: 40px;
     border-radius: 8px;
-    background: #212529;
+    background: var(--background);
     display: grid;
     place-items: center;
     font-size: 25px;
@@ -14,7 +29,7 @@
 
 .card-header .quick-list-head {
     padding: 14px 16px;
-    border-bottom: 1px solid #e4e9ef;
+    border: 1px solid var(--border);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -29,7 +44,7 @@
 }
 
 .panel-sub {
-    color: #8995a2;
+    color: var(--muted);
     font-size: 11px;
     margin-top: 2px;
 }
@@ -42,7 +57,7 @@
 
 .quick-list li {
     padding: 11px 0;
-    border-bottom: 1px solid #edf0f3;
+    border: 1px solid var(--border);
     display: flex;
     align-items: center;
     gap: 10px;
@@ -52,8 +67,8 @@
     width: 31px;
     height: 31px;
     border-radius: 50%;
-    background: #e8f4fa;
-    color: #3c8dbc;
+    background: var(--border);
+    color: var(--sub-primary);
     display: grid;
     place-items: center;
 }
@@ -65,11 +80,11 @@
 
 .quick-list small {
     font-size: 11px;
-    color: #8a96a2;
+    color: var(--muted);
 }
 
 .tabulator .tabulator-header {
-    border-bottom: 2px solid #dee2e6;
+    border: 2px solid var(--border);
     color: inherit;
 }
 
@@ -84,14 +99,14 @@
     flex-direction: column;
     line-height: 0.65;
     font-size: 0.7rem;
-    color: #94a3b8;
+    color: var(--muted);
 }
 
 /* Optional: Active sort highlight states */
 th.sort-asc .bi-chevron-up,
 th.sort-desc .bi-chevron-down {
-    color: #0f172a;
-    font-weight: bold;
+    color: var(--un-muted);
+    font-weight: 900;
 }
 
 .modal-body-row {
@@ -101,4 +116,94 @@ th.sort-desc .bi-chevron-down {
 
 .modal-body-column {
   flex: 1; /* Makes both columns equal width */
+}
+
+/* Master Row Styling */
+.chevron {
+    display: inline-block;
+    width: 1rem;
+    transition: transform 0.2s ease;
+    color: var(--muted-alt);
+    cursor: pointer;
+}
+
+.chevron-th {
+    width: 30px;
+}
+
+.master-row.expanded .chevron {
+    transform: rotate(90deg);
+    color: var(--un-muted);
+    cursor: pointer;
+}
+
+/* Detail Drawer Styling */
+.detail-row {
+    display: none;
+}
+
+.detail-row.open {
+    display: table-row;
+}
+
+.detail-container {
+    margin-bottom: 1rem;
+}
+
+.table > tbody > tr.detail-row.open > td.detail-data {
+    --bs-table-bg: var(--sub-table-bg);
+    --bs-table-bg-state: transparent;
+    background-color: var(--sub-table-bg);
+    box-shadow: none;
+}
+
+.sub-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.50rem;
+}
+
+.sub-header h4 {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--background);
+    text-transform: uppercase;
+}
+
+.sub-table {
+    box-sizing: border-box;
+    background: var(--light-background);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.sub-table th, .sub-table td {
+    padding-right: 0.1rem;
+    padding-left: 0.1rem;
+}
+
+/* Sub table buttons */
+.sub-table-btn {
+    padding: 0.4rem 0.75rem;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    font-size: 0.500rem;
+    font-weight: 400;
+    cursor: pointer;
+}
+
+.sub-table-btn-primary {
+    background: var(--primary);
+    color: white;
+}
+
+.sub-table-btn-primary:hover {
+    background: var(--primary-hover);
+}
+
+.sub-table-btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
 }

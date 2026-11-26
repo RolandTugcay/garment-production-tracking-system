@@ -104,6 +104,7 @@
                                     <table class="table table-hover align-middle m-0 fs-7" role="table">
                                         <thead>
                                             <tr>
+                                                <th class="chevron-th"></th>
                                                 {{ sort_header("Code", "code", sort_by, sort_direction, search_query, search_field) }}
                                                 {{ sort_header("Name", "name", sort_by, sort_direction, search_query, search_field) }}
                                                 {{ sort_header("Status", "status", sort_by, sort_direction, search_query, search_field) }}
@@ -116,7 +117,8 @@
                                         </thead>
                                         <tbody>
                                             {% for customer in customers %}
-                                            <tr>
+                                            <tr class="master-row" onclick="toggleRow('cust-{{customer.id}}', this)">
+                                                <td><span class="chevron"><i class="bi bi-chevron-right"></i></span></td>
                                                 <td class="text-primary" style="font-weight: 500;">{{ customer.code }}</td>
                                                 <td>{{ customer.name }}</td>
                                                 <td>
@@ -130,18 +132,9 @@
                                                 </td>
                                                 <td>{{ customer.address or "" }}</td>
                                                 <td>{{ customer.notes or "" }}</td>
-                                                <td>{{ customer.created_at.strftime("%Y-%m-%d %H:%M") }}</td>
-                                                <td>{{ customer.updated_at.strftime("%Y-%m-%d %H:%M") }}</td>
+                                                <td>{{ customer.created_at.strftime("%Y-%m-%d %I:%M %p") }}</td>
+                                                <td>{{ customer.updated_at.strftime("%Y-%m-%d %I:%M %p") }}</td>
                                                 <td class="text-end text-nowrap">
-                                                     <button type="button" class="btn btn-sm btn-outline-success"
-                                                            title="Manage contacts for {{ customer.name }}"
-                                                            aria-label="Manage contacts for {{ customer.name }}"
-                                                            data-customer-contacts-url="{#{{ url_for('customer-contacts.list_customer_contacts', customer_id=customer.id) }}#}"
-                                                            data-customer-code="{{ customer.code }}"
-                                                            data-customer-name="{{ customer.name }}"
-                                                    >
-                                                        <i class="bi bi-telephone" aria-hidden="true"></i>
-                                                    </button>
                                                     <button type="button" class="btn btn-sm btn-outline-secondary"
                                                             title="Edit {{ customer.name }}"
                                                             aria-label="Edit {{ customer.name }}"
@@ -166,6 +159,103 @@
                                                             {% if customer.id in customers_with_orders %}disabled{% endif %}>
                                                         <i class="bi bi-trash" aria-hidden="true"></i>
                                                     </button>
+                                                </td>
+                                            </tr>
+                                            <tr id="cust-{{customer.id}}" class="detail-row">
+                                                <td class="detail-data" colspan="9">
+                                                    <div class="detail-container">
+                                                        <div class="sub-header">
+                                                            <h4></h4>
+                                                            <button type="button" class="sub-table-btn sub-table-btn-sm sub-table-btn-primary" 
+                                                                    data-bs-toggle="modal"
+                                                                    data-bs-target="#modal-save-customer-contact"
+                                                                    title="Add contact for {{ customer.name }}"
+                                                                    aria-label="Add contact for {{ customer.name }}"
+                                                                    data-customer-id="{{ customer.id }}"
+                                                                    data-customer-name="{{ customer.name }}"
+                                                                >
+                                                                <i class="bi bi-plus me-1" aria-hidden="true"></i>Add Contact
+                                                            </button>
+                                                        </div>
+                                                        <table class="sub-table table table-sm align-middle m-0">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>Contact Name</th>
+                                                                    <th>Position</th>
+                                                                    <th>Phone</th>
+                                                                    <th>Email Address</th>
+                                                                    <th>Primary Contact</th>
+                                                                    <th>Created At</th>
+                                                                    <th>Updated At</th>
+                                                                    <th class="text-end" scope="col">Actions</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                            {% set matching_contacts = [] %}
+                                                            {% for contact in customer_contacts or [] %}
+                                                                {% if contact and contact.customer_id == customer.id %}
+                                                                {% set _ = matching_contacts.append(contact) %}
+                                                                {% endif %}
+                                                            {% endfor %}
+
+                                                            {% if matching_contacts %}
+                                                                {% for customer_contact in matching_contacts %}
+                                                                <tr>
+                                                                    <td>{{ customer_contact.first_name }} {{ customer_contact.last_name }}</td>
+                                                                    <td>{{ customer_contact.position or '' }}</td>
+                                                                    <td>{{ customer_contact.phone }}</td>
+                                                                    <td>{{ customer_contact.email or '' }}</td>
+                                                                    <td>{{ customer_contact.is_primary }}</td>
+                                                                    <td>{{ customer_contact.created_at.strftime("%Y-%m-%d %I:%M %p") }}</td>
+                                                                    <td>{{ customer_contact.updated_at.strftime("%Y-%m-%d %I:%M %p") }}</td>
+                                                                    <td class="text-end text-nowrap">
+                                                                    <button
+                                                                        type="button"
+                                                                        class="btn btn-sm btn-outline-secondary"
+                                                                        title="Edit {{ customer_contact.first_name }} {{ customer_contact.last_name }}"
+                                                                        aria-label="Edit {{ customer_contact.first_name }} {{ customer_contact.last_name }}"
+                                                                        data-bs-toggle="modal"
+                                                                        data-bs-target="#modal-save-customer-contact"
+                                                                        data-edit-url="{{ url_for('customer_contacts.edit_customer_contact', contact_id=customer_contact.id) }}"
+                                                                        data-customer-id="{{ customer.id }}"
+                                                                        data-customer-name="{{ customer.name }}"
+                                                                        data-contact-first-name="{{ customer_contact.first_name }}"
+                                                                        data-contact-last-name="{{ customer_contact.last_name }}"
+                                                                        data-contact-position="{{ customer_contact.position or '' }}"
+                                                                        data-contact-phone="{{ customer_contact.phone }}"
+                                                                        data-contact-email="{{ customer_contact.email or '' }}"
+                                                                        data-contact-is-primary="{{ customer_contact.is_primary }}"
+                                                                    >
+                                                                        <i class="bi bi-pencil" aria-hidden="true"></i>
+                                                                    </button>
+                                                                    <button
+                                                                        type="button"
+                                                                        class="btn btn-sm btn-outline-danger"
+                                                                        title="Delete {{ customer_contact.first_name }} {{ customer_contact.last_name }}"
+                                                                        aria-label="Delete {{ customer_contact.first_name }} {{ customer_contact.last_name }}"
+                                                                        data-bs-toggle="modal"
+                                                                        data-bs-target="#modal-delete-customer-contact"
+                                                                        data-delete-url="{{ url_for('customer_contacts.delete_customer_contact_form', contact_id=customer_contact.id) }}"
+                                                                        data-customer-id="{{ customer.id }}"
+                                                                        data-customer-name="{{ customer.name }}"
+                                                                        data-contact-first-name="{{ customer_contact.first_name }}"
+                                                                        data-contact-last-name="{{ customer_contact.last_name }}"
+                                                                    >
+                                                                        <i class="bi bi-trash" aria-hidden="true"></i>
+                                                                    </button>
+                                                                    </td>
+                                                                </tr>
+                                                                {% endfor %}
+                                                            {% else %}
+                                                                <tr>
+                                                                    <td colspan="8" class="text-center">
+                                                                        No customer contact found.
+                                                                    </td>
+                                                                </tr>
+                                                            {% endif %}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
                                                 </td>
                                             </tr>
                                             {% else %}
@@ -226,6 +316,7 @@
                     </div>
                 </div>
 
+                <!--begin: Save Modal-->
                 <div class="modal fade" 
                     id="modal-save-customer" 
                     tabindex="-1" 
@@ -293,18 +384,19 @@
                         </div>
                     </div>
                 </div>
-
+                <!--end: Save Modal-->
+                <!--begin: Delete Modal-->
                 <div class="modal fade" id="modal-delete-customer" tabindex="-1" aria-labelledby="modal-delete-customer-label" aria-hidden="true">
                     <div class="modal-dialog">
                         <div class="modal-content">
                             <form id="customer-form-delete" action="#" method="post">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <div class="modal-header">
-                                    <h5 class="modal-title" id="modal-delete-customer-label">Delete customer</h5>
+                                    <h5 class="modal-title fs-6" id="modal-delete-customer-label">Delete customer</h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body">
-                                    <p class="mb-0" id="modal-delete-customer-message"></p>
+                                    <p class="mb-0 fs-7" id="modal-delete-customer-message"></p>
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -314,6 +406,10 @@
                         </div>
                     </div>
                 </div>
+                <!--end: Delete Modal-->
+
+                {% include 'customer-contacts-modal.html' %}
+
             </div>
         </div>
     </main>
@@ -325,7 +421,20 @@
 {% include 'toast-message.html' %}
 {% include 'script.html' %}
 
+<script>
+  function toggleRow(detailId, masterRow) {
+    const detailRow = document.getElementById(detailId);
+    const isOpen = detailRow.classList.contains('open');
+
+    detailRow.classList.toggle('open', !isOpen);
+    masterRow.classList.toggle('expanded', !isOpen);
+  }
+</script>
+
+<script src="{{ url_for('static', filename='js/dev-phone-validate.js') }}" defer></script>
+<script src="{{ url_for('static', filename='js/dev-email-validate.js') }}" defer></script>
 <script src="{{ url_for('static', filename='js/page-customers.js') }}" defer></script>
+<script src="{{ url_for('static', filename='js/page-customer-contacts.js') }}" defer></script>
 
 </body>
 </html>

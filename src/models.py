@@ -183,6 +183,65 @@ class Customer(db.Model):
     def __repr__(self):
         return f"<Customer {self.code}: {self.name}>"
 
+#===================== CUSTOMER CONTACTS =====================
+class CustomerContact(db.Model):
+    __tablename__ = "customer_contacts"
+
+    __table_args__ = (
+        Index(
+            "uq_customer_contacts_one_primary_per_customer",
+            "id",
+            unique=True,
+            postgresql_where=text("is_primary = 'Yes'"),
+        ),
+        {"schema": "public"},
+    )
+
+    id = db.Column(
+        db.Integer,
+        Identity(always=False),
+        primary_key=True,
+    )
+
+    customer_id = db.Column(
+        db.Integer,
+        db.ForeignKey(
+            "public.customers.id",
+            name="fk_customer_contacts_customer",
+            onupdate="NO ACTION",
+            ondelete="NO ACTION",
+        ),
+        nullable=False,
+    )
+
+    first_name = db.Column(db.String(100), nullable=False)
+    last_name = db.Column(db.String(100), nullable=False)
+    position = db.Column(db.String(100))
+    phone = db.Column(db.String(30), nullable=False)
+    email = db.Column(db.String(254))
+
+    created_at = db.Column(
+        db.DateTime(timezone=False),
+        nullable=False,
+        server_default=db.func.current_timestamp(),
+    )
+    updated_at = db.Column(
+        db.DateTime(timezone=False),
+        nullable=False,
+        server_default=db.func.current_timestamp(),
+    )
+    is_primary = db.Column(
+        db.String(20),
+        nullable=False,
+        server_default='No',
+    )
+
+    def __repr__(self):
+        return (
+            f"<CustomerContact {self.id}: "
+            f"{self.first_name} {self.last_name}>"
+        )
+
 #===================== PURCHASE ORDER =====================
 class PurchaseOrder(db.Model):
     __tablename__ = "purchase_order"

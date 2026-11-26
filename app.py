@@ -30,6 +30,7 @@ app.register_blueprint(routes.worker_classes_bp)
 app.register_blueprint(routes.workers_bp)
 app.register_blueprint(routes.users_bp)
 app.register_blueprint(routes.customers_bp)
+app.register_blueprint(routes.customer_contacts_bp)
 
 #=========================== LOGIN ===========================
 @login_manager.user_loader

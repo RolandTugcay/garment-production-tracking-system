@@ -189,8 +189,8 @@
                                                         <span class="badge text-bg-warning">On Leave</span>
                                                     {% endif %}
                                                 </td>
-                                                <td>{{ worker.created_at.strftime("%Y-%m-%d %H:%M") }}</td>
-                                                <td>{{ worker.updated_at.strftime("%Y-%m-%d %H:%M") }}</td>
+                                                <td>{{ worker.created_at.strftime("%Y-%m-%d %I:%M %p") }}</td>
+                                                <td>{{ worker.updated_at.strftime("%Y-%m-%d %I:%M %p") }}</td>
                                                 <td class="text-end">
                                                     <button type="button" title="Edit"
                                                         class="btn btn-sm btn-outline-secondary"
@@ -491,7 +491,7 @@
                                 method="post">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <div class="modal-header">
-                                    <h5 class="modal-title" id="modal-delete-worker-label">Delete worker</h5>
+                                    <h5 class="modal-title fs-6" id="modal-delete-worker-label">Delete worker</h5>
                                     <button
                                     type="button"
                                     class="btn-close"
@@ -500,7 +500,7 @@
                                     ></button>
                                 </div>
                                 <div class="modal-body">
-                                    <p class="mb-0" id="modal-delete-worker-message"></p>
+                                    <p class="mb-0 fs7" id="modal-delete-worker-message"></p>
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
