@@ -1,0 +1,132 @@
+<!--begin: Save Modal-->
+<div class="modal fade" 
+    id="modal-save-customer-contact" 
+    tabindex="-1" 
+    aria-labelledby="modal-save-customer-contact-label" 
+    aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="customer-contact-form-save" action="{{ url_for('customer_contacts.create_customer_contact') }}"
+                data-create-url="{{ url_for('customer_contacts.create_customer_contact') }}" 
+                method="post">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-header">
+                    <h5 class="modal-title fs-6" id="modal-save-customer-contact-label">Add customer contact</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="customer-contact-customer-id" name="customer_id">
+                    <div class="mb-3">
+                        <label for="customer-contact-customer-name" class="form-label fs-7">Customer Name</label>
+                        <input type="text"
+                               class="form-control fs-7"
+                               id="customer-contact-customer-name"
+                               readonly 
+                               style="background-color: #EDF1F6;">
+                    </div>
+                    <div class="modal-body-row">
+                        <div class="modal-body-column">
+                            <div class="mb-3">
+                                <label for="customer-contact-first-name" class="form-label fs-7">First Name</label>
+                                <input type="text" 
+                                    class="form-control fs-7" 
+                                    id="customer-contact-first-name" 
+                                    name="first_name" 
+                                    maxlength="100"
+                                    required
+                                >
+                            </div>
+                        </div>
+                        <div class="modal-body-column">
+                            <div class="mb-3">
+                                <label for="customer-contact-last-name" class="form-label fs-7">Last Name</label>
+                                <input type="text" 
+                                    class="form-control fs-7" 
+                                    id="customer-contact-last-name" 
+                                    name="last_name" 
+                                    maxlength="100"
+                                    required
+                                >
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-body-row">
+                        <div class="modal-body-column">
+                            <div class="mb-3">
+                                <label for="customer-contact-phone" class="form-label fs-7">Phone</label>
+                                <input type="text"
+                                    class="form-control fs-7"
+                                    id="customer-contact-phone"
+                                    name="phone"
+                                    maxlength="13"
+                                    placeholder="0###-###-####"
+                                    required>
+                            </div>
+                        </div>
+                        <div class="modal-body-column">
+                            <div class="mb-3">
+                                <label for="customer-contact-email" class="form-label fs-7">Email Address</label>
+                                <input type="email"
+                                    class="form-control fs-7"
+                                    id="customer-contact-email"
+                                    name="email"
+                                    placeholder="someone@gmail.com"
+                                    maxlength="254">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-body-row">
+                        <div class="modal-body-column">
+                            <div class="mb-3">
+                                <label for="customer-contact-position" class="form-label fs-7">Position</label>
+                                <input type="text" 
+                                    class="form-control fs-7" 
+                                    id="customer-contact-position" 
+                                    name="position" 
+                                    maxlength="100"
+                                >
+                            </div>
+                        </div>
+                        <div class="modal-body-column">
+                            <div class="mb-3">
+                                <label for="customer-contact-is-primary" class="form-label fs-7">Primary Contact</label>
+                                <select class="form-select fs-7" id="customer-contact-is-primary" name="is_primary" required>
+                                    <option value="Yes">Yes</option>
+                                    <option value="No" selected>No</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!--end: Save Modal-->
+
+<!--begin: Delete Modal-->
+<div class="modal fade" id="modal-delete-customer-contact" tabindex="-1" aria-labelledby="modal-delete-customer-contact-label" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="customer-contact-form-delete" action="#" method="post">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-header">
+                    <h5 class="modal-title fs-6" id="modal-delete-customer-contact-label">Delete customer contact</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-0 fs-7" id="modal-delete-customer-contact-message"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!--end: Delete Modal-->
