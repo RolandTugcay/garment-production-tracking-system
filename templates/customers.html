@@ -117,7 +117,10 @@
                                         </thead>
                                         <tbody>
                                             {% for customer in customers %}
-                                            <tr class="master-row" onclick="toggleRow('cust-{{customer.id}}', this)">
+                                            <tr
+                                                class="master-row {{ 'expanded' if customer.id == customer_id else '' }}"
+                                                onclick="toggleRow('cust-{{ customer.id }}', this)"
+                                            >
                                                 <td><span class="chevron"><i class="bi bi-chevron-right"></i></span></td>
                                                 <td class="text-primary" style="font-weight: 500;">{{ customer.code }}</td>
                                                 <td>{{ customer.name }}</td>
@@ -161,7 +164,10 @@
                                                     </button>
                                                 </td>
                                             </tr>
-                                            <tr id="cust-{{customer.id}}" class="detail-row">
+                                            <tr
+                                                id="cust-{{ customer.id }}"
+                                                class="detail-row {{ 'open' if customer_id == customer.id else '' }}"
+                                            >
                                                 <td class="detail-data" colspan="9">
                                                     <div class="detail-container">
                                                         <div class="sub-header">

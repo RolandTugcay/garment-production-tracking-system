@@ -27,6 +27,8 @@ CUSTOMER_STATUSES = {"Active", "Inactive"}
 @customers_bp.get("/customers")
 @login_required
 def list_customers():
+    customer_id = request.args.get("customer_id", type=int)
+
     # Read and normalize search options from the query string.
     search_query = (request.args.get("q", "", type=str) or "").strip()[:100]
     search_field = (
@@ -170,7 +172,8 @@ def list_customers():
         sort_by=sort_by,
         sort_direction=sort_direction,
         customers_with_orders=customers_with_orders,
-        customer_contacts=customer_contacts
+        customer_contacts=customer_contacts,
+        customer_id=customer_id
     )
 
 

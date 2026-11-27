@@ -32,8 +32,21 @@
     'customers.delete_customer'
 ] %}
 
+{% set garment_types_endpoints = [
+    'garment_types.list_garment_types',
+    'garment_types.create_garment_type',
+    'garment_types.edit_garment_type',
+    'garment_types.delete_garment_type'
+] %}
 
-{% set system_setup_endpoints = worker_classes_endpoints + workers_endpoints + users_endpoints + customers_endpoints %}
+
+{% set system_setup_endpoints = 
+    worker_classes_endpoints + 
+    workers_endpoints + 
+    users_endpoints + 
+    customers_endpoints +
+    garment_types_endpoints
+%}
 
 <!--begin::Sidebar-->
 <aside class="app-sidebar bg-body-secondary shadow" data-bs-theme="dark">
@@ -111,8 +124,8 @@
                             </a>
                         </li>
                         <li class="nav-item item">
-                            <a href="#"
-                               class="nav-link">
+                            <a href="{{ url_for('garment_types.list_garment_types') }}"
+                               class="nav-link {{ active_class(garment_types_endpoint, current_endpoint) }}"">
                                 <i class="nav-icon bi bi-person-standing-dress"></i>
                                 <p>Garment Types</p>
                             </a>

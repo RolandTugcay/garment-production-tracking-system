@@ -31,6 +31,7 @@ app.register_blueprint(routes.workers_bp)
 app.register_blueprint(routes.users_bp)
 app.register_blueprint(routes.customers_bp)
 app.register_blueprint(routes.customer_contacts_bp)
+app.register_blueprint(routes.garment_types_bp)
 
 #=========================== LOGIN ===========================
 @login_manager.user_loader
@@ -39,6 +40,30 @@ def load_user(user_id):
         return db.session.get(models.User, int(user_id))
     except (TypeError, ValueError):
         return None
+
+
+@app.context_processor
+def inject_navbar_profile():
+    # Load the linked worker and worker-class name for the navbar.
+    navbar_worker = None
+
+    if current_user.is_authenticated and current_user.worker_id is not None:
+        navbar_worker = db.session.execute(
+            db.select(
+                models.Worker.first_name,
+                models.Worker.last_name,
+                models.WorkerClass.name.label("class_name"),
+            )
+            .join(
+                models.WorkerClass,
+                models.Worker.worker_class_id == models.WorkerClass.id,
+            )
+            .where(models.Worker.id == current_user.worker_id)
+        ).one_or_none()
+
+    return {"navbar_worker": navbar_worker}
+
+
 #=========================== LOGIN VALIDATION ===========================
 @app.route("/", methods=["GET", "POST"])
 def index():

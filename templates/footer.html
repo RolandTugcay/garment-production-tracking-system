@@ -1,3 +1,62 @@
+<!--begin::Change Password Canvas -->
+<div class="offcanvas offcanvas-end"
+    tabindex="-1"
+    id="changePasswordEndCanvas"
+    aria-labelledby="changePasswordEndCanvasLabel"
+>
+    <form id="change-password-form"
+        action=""
+        method="post"
+    >
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title fs-6" id="changePasswordEndCanvasLabel">Change password</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <div class="mb-3">
+                <label for="old-password" class="form-label fs-7" id="lb-old-password">Old Password</label>
+                <input
+                    type="password"
+                    class="form-control fs-7"
+                    id="old-password"
+                    name="old_password"
+                    maxlength="64"
+                    autocomplete="old-password"
+                >
+                <div id="passwordFeedback" class="feedback" aria-live="polite"></div>
+            </div>
+            <div class="mb-3">
+                <label for="new-password" class="form-label fs-7" id="lb-new-password">New Password</label>
+                <input
+                    type="password"
+                    class="form-control fs-7"
+                    id="new-password"
+                    name="new_password"
+                    maxlength="64"
+                >
+                <div id="passwordFeedback" class="feedback" aria-live="polite"></div>
+            </div>
+            <div class="mb-3 pt-4">
+                <button type="submit" class="btn btn-primary">Change</button>
+            </div>
+        </div>
+    </form>
+</div>
+<!--end::Change Password Canvas -->
+
+<script src="{{ url_for('static', filename='js/dev-username-password-validate.js') }}" defer></script>
+
+<script>
+const userCredentialsValidator = attachUsernamePasswordValidator({
+    form: "#user-form-save",
+    usernameInput: "#new-user-username",
+    usernameFeedback: "#usernameFeedback",
+    passwordInput: "#new-password",
+    passwordFeedback: "#passwordFeedback",
+});
+</script>
+
 <footer class="app-footer fs-7">
     <!--begin::To the end-->
     <div class="float-end d-none d-sm-inline"></div>

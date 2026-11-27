@@ -19,22 +19,29 @@ def request_data():
 
 
 # Send browser form submissions back to the customer page; keep JSON API errors as JSON.
-def mutation_error(message, status_code):
+def mutation_error(message, status_code, customer_id=None):
     if request.method == "POST" and not request.is_json:
         flash(message, "danger")
-        return redirect(url_for("customers.list_customers"))
+        return redirect(url_for("customers.list_customers", customer_id=customer_id))
     return jsonify(error=message), status_code
 
 
 # Return a suitable success response for browser forms and JSON API clients.
-def mutation_success(message, *, contact=None, status_code=200):
+def mutation_success(message, *, contact=None, status_code=200, customer_id=None):
     if request.method == "POST" and not request.is_json:
         flash(message, "success")
-        return redirect(url_for("customers.list_customers"))
+        return redirect(
+            url_for("customers.list_customers", customer_id=customer_id)
+        )
 
     response = {"message": message}
+
     if contact is not None:
         response["customer_contact"] = serialize_customer_contact(contact)
+
+    if customer_id is not None:
+        response["customer_id"] = customer_id
+
     return jsonify(response), status_code
 
 
@@ -161,125 +168,7 @@ def clear_other_primary_contacts(customer_id, *, exclude_contact_id=None):
             ),
         )
 
-
-# List contacts with optional customer, text-search, sorting, and pagination filters.
-@customer_contacts_bp.get("/customer-contacts")
-@login_required
-def list_customer_contacts():
-    search_query = (request.args.get("q", "", type=str) or "").strip()[:100]
-    customer_id = request.args.get("customer_id", type=int)
-
-    search_columns = {
-        "id": cast(models.CustomerContact.id, String),
-        "customer_id": cast(models.CustomerContact.customer_id, String),
-        "customer_name": models.Customer.name,
-        "first_name": models.CustomerContact.first_name,
-        "last_name": models.CustomerContact.last_name,
-        "position": models.CustomerContact.position,
-        "phone": models.CustomerContact.phone,
-        "email": models.CustomerContact.email,
-        "is_primary": cast(models.CustomerContact.is_primary, String),
-        "created_at": cast(models.CustomerContact.created_at, String),
-        "updated_at": cast(models.CustomerContact.updated_at, String),
-    }
-
-    search_field = (
-        request.args.get("search_field", "all_fields", type=str)
-        or "all_fields"
-    ).strip()
-    if search_field != "all_fields" and search_field not in search_columns:
-        search_field = "all_fields"
-
-    statement = (
-        db.select(models.CustomerContact)
-        .join(
-            models.Customer,
-            models.CustomerContact.customer_id == models.Customer.id,
-        )
-    )
-
-    if customer_id is not None:
-        statement = statement.where(
-            models.CustomerContact.customer_id == customer_id
-        )
-
-    if search_query:
-        search_pattern = f"%{search_query}%"
-        if search_field == "all_fields":
-            statement = statement.where(
-                or_(
-                    *(
-                        column.ilike(search_pattern)
-                        for column in search_columns.values()
-                    )
-                )
-            )
-        else:
-            statement = statement.where(
-                search_columns[search_field].ilike(search_pattern)
-            )
-
-    sort_columns = {
-        "id": models.CustomerContact.id,
-        "customer_name": models.Customer.name,
-        "first_name": models.CustomerContact.first_name,
-        "last_name": models.CustomerContact.last_name,
-        "position": models.CustomerContact.position,
-        "phone": models.CustomerContact.phone,
-        "email": models.CustomerContact.email,
-        "is_primary": models.CustomerContact.is_primary,
-        "created_at": models.CustomerContact.created_at,
-        "updated_at": models.CustomerContact.updated_at,
-    }
-    sort_by = request.args.get("sort", "id")
-    if sort_by not in sort_columns:
-        sort_by = "id"
-    sort_direction = (request.args.get("direction", "asc") or "asc").lower()
-    if sort_direction not in {"asc", "desc"}:
-        sort_direction = "asc"
-
-    sort_column = sort_columns[sort_by]
-    order_by = (
-        sort_column.asc().nulls_last()
-        if sort_direction == "asc"
-        else sort_column.desc().nulls_last()
-    )
-    statement = statement.order_by(order_by, models.CustomerContact.id.asc())
-
-    pagination = db.paginate(
-        statement,
-        page=request.args.get("page", 1, type=int),
-        per_page=10,
-        max_per_page=50,
-    )
-
-    return jsonify(
-        customer_contacts=[
-            serialize_customer_contact(contact)
-            for contact in pagination.items
-        ],
-        page=pagination.page,
-        per_page=pagination.per_page,
-        total=pagination.total,
-        pages=pagination.pages,
-        search_query=search_query,
-        search_field=search_field,
-        customer_id=customer_id,
-        sort_by=sort_by,
-        sort_direction=sort_direction,
-    )
-
-
-# Return one contact by ID as JSON.
-@customer_contacts_bp.get("/customer-contacts/<int:contact_id>")
-@login_required
-def get_customer_contact(contact_id):
-    contact = db.session.get(models.CustomerContact, contact_id)
-    if contact is None:
-        return jsonify(error="Customer contact not found."), 404
-    return jsonify(customer_contact=serialize_customer_contact(contact))
-
-
+#==================== CUSTOMER CONTACT: CREATE ====================
 # Create a contact and its audit row in the same transaction.
 @customer_contacts_bp.post("/customer-contacts")
 @login_required
@@ -305,15 +194,24 @@ def create_customer_contact():
         )
         db.session.commit()
         return mutation_success(
-            "Customer contact added successfully.",
+            message="Customer contact added successfully.",
             contact=contact,
             status_code=201,
+            customer_id=contact.customer_id
         )
+    
     except IntegrityError:
         db.session.rollback()
-        return mutation_error("Could not create the customer contact.", 409)
+        return mutation_error(
+            message="Could not create the customer contact.", 
+            status_code=409,
+            customer_id=contact.customer_id
+        )
+
+    
 
 
+#==================== CUSTOMER CONTACT: EDIT ====================
 # Update a contact; PATCH may send only changed fields, while PUT validates the full record.
 @customer_contacts_bp.route(
     "/customer-contacts/<int:contact_id>/edit",
@@ -344,7 +242,7 @@ def update_customer_contact(contact_id):
         partial=partial,
     )
     if error:
-        return mutation_error(error, 400)
+        return mutation_error(error, 400, customer_id=contact.customer_id)
 
     changed_values = {
         field: value
@@ -383,12 +281,20 @@ def update_customer_contact(contact_id):
             change_summary=f"Customer contact {contact.id} updated",
         )
         db.session.commit()
-        return mutation_success("Customer contact updated successfully.", contact=contact)
+        return mutation_success(
+            message="Customer contact updated successfully.", 
+            contact=contact,
+            customer_id=contact.customer_id)
+    
     except IntegrityError:
         db.session.rollback()
-        return mutation_error("Could not update the customer contact.", 409)
+        return mutation_error(
+            message="Could not update the customer contact.", 
+            status_code=409,
+            customer_id=contact.customer_id)
 
 
+#==================== CUSTOMER CONTACT: DELETE ====================
 # Delete a contact and record the deletion in the audit log.
 @customer_contacts_bp.route(
     "/customer-contacts/<int:contact_id>/delete",
@@ -413,7 +319,12 @@ def delete_customer_contact(contact_id):
             change_summary=f"Customer contact {contact.id} deleted",
         )
         db.session.commit()
-        return mutation_success("Customer contact deleted successfully.")
+        return mutation_success(
+            message="Customer contact deleted successfully.",
+            customer_id=contact.customer_id)
     except IntegrityError:
         db.session.rollback()
-        return mutation_error("Could not delete the customer contact.", 409)
+        return mutation_error(
+            message="Could not delete the customer contact.", 
+            status_code=409,
+            customer_id=contact.customer_id)

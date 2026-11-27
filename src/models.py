@@ -1,7 +1,7 @@
 from src.extensions import db
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
-from sqlalchemy import text, Computed, BigInteger, Identity, Index, UniqueConstraint
+from sqlalchemy import text, Computed, BigInteger, Identity, Index, UniqueConstraint, Numeric
 
 #===================== AUDIT_LOGS =====================
 class AuditLog(db.Model):
@@ -242,6 +242,98 @@ class CustomerContact(db.Model):
             f"{self.first_name} {self.last_name}>"
         )
 
+
+#===================== GARMENT TYPES =====================
+class GarmentType(db.Model):
+    __tablename__ = "garment_types"
+    __table_args__ = {"schema": "public"}
+
+    id = db.Column(
+        db.Integer,
+        Identity(always=False),
+        primary_key=True,
+    )
+
+    name = db.Column(db.String(50), nullable=False,unique=True)
+    code = db.Column(db.String(10),nullable=False,unique=True)
+    status = db.Column(db.String(20), nullable=False,server_default="Active")
+    description = db.Column(db.Text)
+
+    created_at = db.Column(
+        db.DateTime(timezone=False),
+        nullable=False,
+        server_default=db.func.current_timestamp(),
+    )
+    updated_at = db.Column(
+        db.DateTime(timezone=False),
+        nullable=False,
+        server_default=db.func.current_timestamp(),
+    )
+
+    def __repr__(self):
+        return f"<GarmentType {self.code}: {self.name}>"
+
+
+#===================== GARMENT JOB TEMPLATES =====================
+class GarmentJobTemplate(db.Model):
+    __tablename__ = "garment_job_templates"
+
+    __table_args__ = (
+        UniqueConstraint(
+            "garment_type_id",
+            "name",
+            name="uq_garment_job_templates_type_name",
+        ),
+        {"schema": "public"},
+    )
+
+    id = db.Column(
+        db.Integer,
+        Identity(always=False),
+        primary_key=True,
+    )
+
+    garment_type_id = db.Column(
+        db.Integer,
+        db.ForeignKey(
+            "public.garment_types.id",
+            name="fk_garment_job_templates_type",
+            onupdate="NO ACTION",
+            ondelete="NO ACTION",
+        ),
+        nullable=False,
+    )
+
+    name = db.Column(db.String(100), nullable=False)
+    sequence_number = db.Column(db.Integer)
+    rate_per_unit = db.Column(
+        Numeric(10, 2),
+        nullable=False,
+        server_default="0",
+    )
+    is_active = db.Column(
+        db.Boolean,
+        nullable=False,
+        server_default=text("true"),
+    )
+    
+    description = db.Column(db.Text())
+
+    created_at = db.Column(
+        db.DateTime(timezone=False),
+        nullable=False,
+        server_default=db.func.current_timestamp(),
+    )
+    updated_at = db.Column(
+        db.DateTime(timezone=False),
+        nullable=False,
+        server_default=db.func.current_timestamp(),
+    )
+
+    def __repr__(self):
+        return f"<GarmentJobTemplate {self.id}: {self.name}>"
+    
+
 #===================== PURCHASE ORDER =====================
 class PurchaseOrder(db.Model):
     __tablename__ = "purchase_order"
@@ -286,11 +378,13 @@ class PurchaseOrder(db.Model):
     po_number = db.Column(db.String(50), nullable=False)
     order_date = db.Column(db.Date, nullable=False)
     due_date = db.Column(db.Date, nullable=False)
+    
     status = db.Column(
         db.String(30),
         nullable=False,
         server_default="received",
     )
+
     notes = db.Column(db.Text)
 
     created_at = db.Column(
@@ -306,3 +400,5 @@ class PurchaseOrder(db.Model):
 
     def __repr__(self):
         return f"<PurchaseOrder {self.po_number}>"
+
+
